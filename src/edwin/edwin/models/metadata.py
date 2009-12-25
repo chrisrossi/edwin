@@ -4,8 +4,8 @@ from jpeg import jpeg
 # Class for representing our custom metadata for jpeg photos.  Metadata is
 # stored in the comments section of jpeg files following our own format
 #
-BEGIN_SEMAPHORE = '<photometa>'
-END_SEMAPHORE = '</photometa>'
+BEGIN_TAG = '<photometa>'
+END_TAG = '</photometa>'
 
 # States for our finite state machine parser
 STATE_SCANNING=0
@@ -27,13 +27,13 @@ class Metadata(dict):
         c = jpeg.getComments( self.fname )
 
         # look for our semaphore
-        i = c.find( BEGIN_SEMAPHORE )
+        i = c.find( BEGIN_TAG )
         if i == -1:
             # if it is not present, then we haven't tagged this file yet
             return
 
         # start parsing after semaphore
-        i += len( BEGIN_SEMAPHORE )
+        i += len( BEGIN_TAG )
         state = STATE_SCANNING
         tagname = None
         iTagname = -1
@@ -45,7 +45,7 @@ class Metadata(dict):
                 # Check for begin of tag name
                 if c[i] == '<':
                     # Check for end of tags
-                    if c[i:i+len(END_SEMAPHORE)] == END_SEMAPHORE:
+                    if c[i:i+len(END_TAG)] == END_TAG:
                         break
 
                     # Start parsing tag name
@@ -82,8 +82,7 @@ class Metadata(dict):
                 else:
                     i += 1
 
-            if i >= len(c):
-                raise Exception( "Bad metadata" )
+            assert i < len(c), "Bad metadata"
 
     def save( self ):
         """Writes metadata out to photo comments."""
@@ -95,7 +94,7 @@ class Metadata(dict):
         # our metadata (so we don't nuke somebody else's comments).
         before = ''
         after = ''
-        i = c.find( BEGIN_SEMAPHORE )
+        i = c.find( BEGIN_TAG )
         if i == -1:
             # No previous tags
             before = c
@@ -105,16 +104,15 @@ class Metadata(dict):
             before = c[:i]
 
             # And get after
-            i = c.find( END_SEMAPHORE )
-            if i == -1:
-                raise Exception( "bad metadata" )
-            after = c[i+len( END_SEMAPHORE ):]
+            i = c.find( END_TAG )
+            assert i != -1, "Bad metadata"
+            after = c[i+len( END_TAG ):]
 
         # Generate metadata block
-        meta = BEGIN_SEMAPHORE
+        meta = BEGIN_TAG
         for ( name, value ) in self.items():
             meta = '%s<%s>%s</%s>' % ( meta, name, value, name )
-        meta = '%s%s' % ( meta, END_SEMAPHORE )
+        meta = '%s%s' % ( meta, END_TAG )
 
         # Write comments back out
         jpeg.setComments( '%s%s%s' % ( before, meta, after ), self.fname )
