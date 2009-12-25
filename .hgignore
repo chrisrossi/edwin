@@ -5,3 +5,4 @@ bin
 include
 .egg$
 .egg-info$
+.coverage
