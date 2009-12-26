@@ -24,6 +24,7 @@ class TestPhoto(unittest.TestCase):
         p.location = 'North Pole'
         p.title = 'Mrs. Clause and the elves'
         p.desc = 'Mrs. Clause and the elves blow off some steam.'
+        p.version = 2
         p.save()
 
         del p
@@ -34,3 +35,4 @@ class TestPhoto(unittest.TestCase):
         self.assertEqual(
             p.desc, 'Mrs. Clause and the elves blow off some steam.'
         )
+        self.assertEqual(p.version, 2)
