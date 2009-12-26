@@ -52,3 +52,10 @@ class TestPhoto(unittest.TestCase):
 
         p = Photo(self.fname)
         self.assertEqual(p.visibility, 'private')
+
+    def test_timestamp(self):
+        import datetime
+        from edwin.models.photo import Photo
+        p = Photo(self.fname)
+        expected = datetime.datetime(2008, 12, 4, 22, 42, 57)
+        self.assertEqual(p.timestamp, expected)

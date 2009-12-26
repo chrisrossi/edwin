@@ -1,4 +1,6 @@
+import datetime
 from edwin.models.metadata import Metadata
+from jpeg import jpeg
 
 class _MetadataProperty(object):
     _to_python = lambda self, x: x
@@ -22,6 +24,28 @@ class _MetadataProperty(object):
 class _IntMetadataProperty(_MetadataProperty):
     _to_python = int
 
+
+class _ExifProperty(object):
+    _to_python = lambda self, x: x
+
+    def __init__(self, id):
+        self.id = id
+
+    def __get__(self, photo, cls=None):
+        exif = getattr(photo, '_exif', None)
+        if exif is None:
+            exif = jpeg.getExif(photo.fpath)
+            photo._exif = exif
+        for tag in exif.exif:
+            if tag.intID == self.id:
+                return self._to_python(tag.value)
+
+class _TimestampExifProperty(_ExifProperty):
+    DATETIME_FORMAT = '%Y:%m:%d %H:%M:%S'
+
+    def _to_python(self, value):
+        return datetime.datetime.strptime(value, self.DATETIME_FORMAT)
+
 def _as_bool(value):
     return value.lower() in ['true', 't', 'yes', 'y', '1']
 
@@ -34,6 +58,7 @@ class Photo(object):
     photographer = _MetadataProperty('photographer')
     desc = _MetadataProperty('desc')
     visibility = _MetadataProperty('visibility', 'new')
+    timestamp = _TimestampExifProperty(0x9003)
 
     def __init__(self, fpath):
         self.fpath = fpath
