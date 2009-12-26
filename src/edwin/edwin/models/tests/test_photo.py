@@ -36,3 +36,19 @@ class TestPhoto(unittest.TestCase):
             p.desc, 'Mrs. Clause and the elves blow off some steam.'
         )
         self.assertEqual(p.version, 2)
+
+    def test_evolve1(self):
+        from edwin.models.photo import Photo
+        p = Photo(self.fname)
+        self.assertEqual(p.visibility, 'new')
+        p._metadata['published'] = True
+        p.save()
+
+        p = Photo(self.fname)
+        self.assertEqual(p.visibility, 'public')
+
+        p._metadata['published'] = False
+        p.save()
+
+        p = Photo(self.fname)
+        self.assertEqual(p.visibility, 'private')
