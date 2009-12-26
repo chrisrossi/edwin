@@ -24,6 +24,17 @@ class _MetadataProperty(object):
 class _IntMetadataProperty(_MetadataProperty):
     _to_python = int
 
+class _DateMetadataProperty(_MetadataProperty):
+    DATE_FORMAT = '%Y-%m-%d'
+
+    def _from_python(self, value):
+        if value is not None:
+            return '-'.join(map(str, [value.year, value.month, value.day]))
+
+    def _to_python(self, value):
+        if value is not None:
+            parts = map(int, value.split('-'))
+            return datetime.date(*parts)
 
 class _ExifProperty(object):
     _to_python = lambda self, x: x
@@ -59,10 +70,16 @@ class Photo(object):
     desc = _MetadataProperty('desc')
     visibility = _MetadataProperty('visibility', 'new')
     timestamp = _TimestampExifProperty(0x9003)
+    date = _DateMetadataProperty('date')
 
     def __init__(self, fpath):
         self.fpath = fpath
         self._metadata = Metadata(fpath)
+
+        if self.date is None:
+            t = self.timestamp
+            if t is not None:
+                self.date = datetime.date(t.year, t.month, t.day)
 
         self._evolve()
 

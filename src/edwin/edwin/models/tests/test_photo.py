@@ -59,3 +59,13 @@ class TestPhoto(unittest.TestCase):
         p = Photo(self.fname)
         expected = datetime.datetime(2008, 12, 4, 22, 42, 57)
         self.assertEqual(p.timestamp, expected)
+
+        expected = datetime.date(2008, 12, 4)
+        self.assertEqual(p.date, expected)
+
+        expected = datetime.date(1975, 7, 7)
+        p.date = expected
+        p.save()
+
+        p = Photo(self.fname)
+        self.assertEqual(p.date, expected)
