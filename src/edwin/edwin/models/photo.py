@@ -58,5 +58,5 @@ class Photo(object):
                 self.visibility = 'public'
             else:
                 self.visibility = 'private'
-            del self._metadata['published']
+            del metadata['published']
 
