@@ -81,3 +81,13 @@ class TestPhoto(unittest.TestCase):
         self.assertEqual(len(p.tags), 2)
         self.assertEqual(p.tags[0], 'foo')
         self.assertEqual(p.tags[1], 'bar')
+
+    def test_id(self):
+        from edwin.models.photo import Photo
+        p = Photo(self.fname)
+        self.assertEqual(p.id, None)
+        p.id = '1234567890'
+        p.save()
+
+        p = Photo(self.fname)
+        self.assertEqual(p.id, '1234567890')

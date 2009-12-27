@@ -85,6 +85,7 @@ def _as_bool(value):
 class Photo(object):
     SW_VERSION = 1
 
+    id = _MetadataProperty('id')
     version = _IntMetadataProperty('version', 0)
     title = _MetadataProperty('title')
     location = _MetadataProperty('location')
