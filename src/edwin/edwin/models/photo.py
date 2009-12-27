@@ -36,6 +36,28 @@ class _DateMetadataProperty(_MetadataProperty):
             parts = map(int, value.split('-'))
             return datetime.date(*parts)
 
+class _ListMetadataProperty(_MetadataProperty):
+    """
+    Very naive list serialization, uses pipe '|' separator with no escapes.
+    """
+    def __get__(self, photo, cls=None):
+        value = super(_ListMetadataProperty, self).__get__(photo, cls)
+        if value is not None:
+            return map(self._to_python, value.split('|'))
+        return []
+
+    def __set__(self, photo, l):
+        if l is not None:
+            for item in l:
+                if '|' in item:
+                    raise ValueError(
+                        "Pipe character '|' not allowed in list item.")
+            value = '|'.join(l)
+        else:
+            value = []
+        super(_ListMetadataProperty, self).__set__(photo, value)
+
+
 class _ExifProperty(object):
     _to_python = lambda self, x: x
 
@@ -71,6 +93,7 @@ class Photo(object):
     visibility = _MetadataProperty('visibility', 'new')
     timestamp = _TimestampExifProperty(0x9003)
     date = _DateMetadataProperty('date')
+    tags = _ListMetadataProperty('tags')
 
     def __init__(self, fpath):
         self.fpath = fpath
