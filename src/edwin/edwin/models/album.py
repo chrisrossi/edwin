@@ -52,3 +52,21 @@ class Album(object):
     def values(self):
         for fname in self.keys():
             yield self.__getitem__(fname)
+
+    def photo_names(self):
+        for fname in os.listdir(self.path):
+            lower = fname.lower()
+            if lower.endswith('.jpg') or lower.endswith('.jpeg'):
+                yield fname
+
+    def has_photos(self):
+        try:
+            self.photo_names().next()
+            return True
+        except StopIteration:
+            return False
+
+    def photos(self):
+        for fname in self.photo_names():
+            yield self.__getitem__(fname)
+

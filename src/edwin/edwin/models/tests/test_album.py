@@ -89,3 +89,33 @@ class TestAlbum(unittest.TestCase):
         expected = set(['Test 00', 'Test 01', 'Sub 1', 'Sub 2'])
         got = set([v.title for v in album.values()])
         self.assertEqual(got, expected)
+
+    def test_photo_names(self):
+        album = self._make_one()
+        self._make_photos(2)
+        self._make_subalbum('sub1', album)
+        self._make_subalbum('sub2', album)
+
+        album = self._make_one()
+        expected = set(['test00.jpg', 'test01.jpg'])
+        self.assertEqual(set(album.photo_names()), expected)
+
+    def test_has_photos(self):
+        album = self._make_one()
+        self._make_photos(2)
+        self._make_subalbum('sub1', album)
+
+        album = self._make_one()
+        self.failUnless(album.has_photos())
+        self.failIf(album['sub1'].has_photos())
+
+    def test_photos(self):
+        album = self._make_one()
+        self._make_photos(2)
+        self._make_subalbum('sub1', album).title = 'Sub 1'
+        self._make_subalbum('sub2', album).title = 'Sub 2'
+
+        album = self._make_one()
+        expected = set(['Test 00', 'Test 01'])
+        got = set([v.title for v in album.photos()])
+        self.assertEqual(got, expected)
