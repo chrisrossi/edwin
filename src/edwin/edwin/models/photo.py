@@ -28,8 +28,6 @@ class _IntMetadataProperty(_MetadataProperty):
     _to_python = int
 
 class _DateMetadataProperty(_MetadataProperty):
-    DATE_FORMAT = '%Y-%m-%d'
-
     def _from_python(self, value):
         if value is not None:
             return '-'.join(map(str, [value.year, value.month, value.day]))

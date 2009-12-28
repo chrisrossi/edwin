@@ -52,6 +52,11 @@ class TestAlbum(unittest.TestCase):
 
         album = self._make_one()
         self.assertEqual(album.desc, "Fooey")
+        album.desc = None
+        self.assertEqual(album.desc, None)
+
+        album = self._make_one()
+        self.assertEqual(album.desc, None)
 
     def test_getphoto(self):
         self._make_photos(3)
@@ -119,3 +124,35 @@ class TestAlbum(unittest.TestCase):
         expected = set(['Test 00', 'Test 01'])
         got = set([v.title for v in album.photos()])
         self.assertEqual(got, expected)
+
+    def test_guess_date_range_photos(self):
+        from datetime import date
+        album = self._make_one()
+        self._make_photos(3)
+        photo = album['test00.jpg']
+        photo.date = date(2007, 8, 8)
+        photo.save()
+        photo = album['test01.jpg']
+        photo.date = date(2007, 9, 9)
+        photo.save()
+        photo = album['test02.jpg']
+        photo.date = date(2008, 7, 7)
+        photo.save()
+
+        album = self._make_one()
+        self.assertEqual(album.date_range,
+                         (date(2007, 8, 8), date(2008, 7, 7)))
+
+    def test_guess_date_range_folders(self):
+        from datetime import date
+        album = self._make_one()
+        sub1 = self._make_subalbum('sub1', album)
+        sub1.date_range = date(2007, 1, 1), date(2007, 1, 31)
+        sub2 = self._make_subalbum('sub2', album)
+        sub2.date_range = date(2007, 1, 15), date(2007, 2, 15)
+        sub3 = self._make_subalbum('sub3', album)
+        sub3.date_range = date(2008, 1, 1), date(2008, 1, 1)
+
+        album = self._make_one()
+        self.assertEqual(album.date_range,
+                         (date(2007, 1, 1), date(2008, 1, 1)))
