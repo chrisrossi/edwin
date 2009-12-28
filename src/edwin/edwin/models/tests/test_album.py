@@ -17,6 +17,7 @@ class TestAlbum(unittest.TestCase):
         album = self._make_one()
         self.assertEqual(album.title, None)
         album.title = "Test Foo"
+        self.assertEqual(album.title, "Test Foo")
 
         album = self._make_one()
         self.assertEqual(album.title, "Test Foo")
@@ -25,6 +26,7 @@ class TestAlbum(unittest.TestCase):
         album = self._make_one()
         self.assertEqual(album.desc, None)
         album.desc = "Fooey"
+        self.assertEqual(album.desc, "Fooey")
 
         album = self._make_one()
         self.assertEqual(album.desc, "Fooey")
