@@ -21,3 +21,10 @@ class TestAlbum(unittest.TestCase):
         album = self._make_one()
         self.assertEqual(album.title, "Test Foo")
 
+    def test_desc(self):
+        album = self._make_one()
+        self.assertEqual(album.desc, None)
+        album.desc = "Fooey"
+
+        album = self._make_one()
+        self.assertEqual(album.desc, "Fooey")

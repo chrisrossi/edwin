@@ -26,6 +26,7 @@ class _FSProperty(object):
 
 class Album(object):
     title = _FSProperty('title')
+    desc = _FSProperty('desc')
 
     def __init__(self, path):
         self.path = path
