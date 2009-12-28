@@ -9,7 +9,21 @@ class TestAlbum(unittest.TestCase):
         import shutil
         shutil.rmtree(self.path)
 
-    def _make_one(self, test_photos=0):
+    def _make_photos(self, n):
+        from edwin.models.photo import Photo
+        import os
+        import shutil
+        import sys
+        here = os.path.dirname(sys.modules[__name__].__file__)
+        test_jpg = os.path.join(here, 'test.jpg')
+        for i in xrange(n):
+            fpath = os.path.join(self.path, 'test%02d.jpg' % i)
+            shutil.copy(test_jpg, fpath)
+            photo = Photo(fpath)
+            photo.title = 'Test %02d' % i
+            photo.save()
+
+    def _make_one(self):
         from edwin.models.album import Album
         return Album(self.path)
 
@@ -30,3 +44,11 @@ class TestAlbum(unittest.TestCase):
 
         album = self._make_one()
         self.assertEqual(album.desc, "Fooey")
+
+    def test_getitem(self):
+        self._make_photos(3)
+        album = self._make_one()
+        photo = album['test01.jpg']
+        self.assertEqual(photo.title, 'Test 01')
+        self.assertEqual(photo.__parent__, album)
+        self.assertEqual(photo.__name__, 'test01.jpg')

@@ -1,6 +1,8 @@
 from __future__ import with_statement
 import os
 
+from edwin.models.photo import Photo
+
 class _FSProperty(object):
 
     def __init__(self, name):
@@ -23,3 +25,10 @@ class Album(object):
     def __init__(self, path):
         self.path = path
 
+    def __getitem__(self, fname):
+        fpath = os.path.join(self.path, fname)
+        if os.path.isfile(fpath):
+            photo = Photo(fpath)
+            photo.__name__ = fname
+            photo.__parent__ = self
+            return photo
