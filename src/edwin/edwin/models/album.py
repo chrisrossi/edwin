@@ -32,3 +32,23 @@ class Album(object):
             photo.__name__ = fname
             photo.__parent__ = self
             return photo
+
+        if os.path.isdir(fpath):
+            album = Album(fpath)
+            album.__name__ = fname
+            album.__parent__ = self
+            return album
+
+    def keys(self):
+        for fname in os.listdir(self.path):
+            lower = fname.lower()
+            if lower.endswith('.jpg') or lower.endswith('.jpeg'):
+                yield fname
+
+            path = os.path.join(self.path, fname)
+            if os.path.isdir(path):
+                yield fname
+
+    def values(self):
+        for fname in self.keys():
+            yield self.__getitem__(fname)
