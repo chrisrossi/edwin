@@ -82,6 +82,29 @@ class TestPhoto(unittest.TestCase):
         self.assertEqual(p.tags[0], 'foo')
         self.assertEqual(p.tags[1], 'bar')
 
+    def test_bad_tag(self):
+        from edwin.models.photo import Photo
+        p = Photo(self.fname)
+        self.assertRaises(ValueError, setattr, p, 'tags', ['foo|bar'])
+
+    def test_remove_tags(self):
+        from edwin.models.photo import Photo
+        p = Photo(self.fname)
+        self.assertEqual(len(p.tags), 0)
+        p.tags = ['foo', 'bar']
+        p.save()
+
+        p = Photo(self.fname)
+        self.assertEqual(len(p.tags), 2)
+        self.assertEqual(p.tags[0], 'foo')
+        self.assertEqual(p.tags[1], 'bar')
+
+        p.tags = None
+        p.save()
+
+        p = Photo(self.fname)
+        self.assertEqual(p.tags, [])
+
     def test_id(self):
         from edwin.models.photo import Photo
         p = Photo(self.fname)

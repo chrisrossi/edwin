@@ -18,7 +18,10 @@ class _MetadataProperty(object):
         return self._to_python(photo._metadata.get(self.name, self.default))
 
     def __set__(self, photo, value):
-        photo._metadata[self.name] = self._from_python(value)
+        if value is None:
+            del photo._metadata[self.name]
+        else:
+            photo._metadata[self.name] = self._from_python(value)
 
 
 class _IntMetadataProperty(_MetadataProperty):
@@ -54,7 +57,7 @@ class _ListMetadataProperty(_MetadataProperty):
                         "Pipe character '|' not allowed in list item.")
             value = '|'.join(l)
         else:
-            value = []
+            value = None
         super(_ListMetadataProperty, self).__set__(photo, value)
 
 
