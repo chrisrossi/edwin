@@ -174,6 +174,31 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(len(albums), 1)
         self.assertEqual(albums[0].title, 'Two')
 
+    def test_albums_month(self):
+        import datetime
+        self._make_repository()
+        root = self._get_root()
+        catalog = self._make_one()
+        catalog.scan()
+
+        albums = list(catalog.albums(month='2007-02'))
+        self.assertEqual(len(albums), 2)
+        self.assertEqual(albums[0].title, 'Two')
+        self.assertEqual(albums[1].title, 'One')
+
+        root['one'].date_range = (
+            datetime.date(2007, 12, 3),
+            datetime.date(2007, 12, 15),
+        )
+        catalog.index(root['one'])
+
+        albums = list(catalog.albums(month='2007-02'))
+        self.assertEqual(len(albums), 1)
+        self.assertEqual(albums[0].title, 'Two')
+
+        albums = list(catalog.albums(month='2007-12'))
+        self.assertEqual(len(albums), 1)
+        self.assertEqual(albums[0].title, 'One')
 
     def test_photos(self):
         self._make_repository()

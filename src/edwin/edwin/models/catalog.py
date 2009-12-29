@@ -87,6 +87,7 @@ class Catalog(object):
                visibility=None,
                start_date=None,
                end_date=None,
+               month=None,
                limit=None):
         sql = ["select path, title, visibility, start_date, end_date, month "
                "from albums",]
@@ -101,6 +102,19 @@ class Catalog(object):
         if end_date is not None:
             constraints.append('start_date < ?')
             args.append(_serial_date(end_date))
+        if month is not None:
+            start_date = month + '-01'
+            y, m = map(int, month.split('-'))
+            if m == 12:
+                y += 1
+                m = 1
+            else:
+                m += 1
+            end_date = '%04d-%02d-01' % (y, m)
+            constraints.append('start_date >= ?')
+            args.append(start_date)
+            constraints.append('start_date < ?')
+            args.append(end_date)
 
         if constraints:
             sql.append('where')
