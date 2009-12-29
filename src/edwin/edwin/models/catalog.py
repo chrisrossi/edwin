@@ -53,8 +53,8 @@ class Catalog(object):
     def album(self, path):
         with self._cursor() as c:
             c.execute(
-                "select path, title, visibility, date from albums "
-                "where path=?", (path,)
+                "select path, title, visibility, start_date, end_date "
+                "from albums where path=?", (path,)
             )
             row = c.fetchone()
             if not row:
@@ -108,9 +108,11 @@ class Catalog(object):
 
         # Update record
         c.execute(
-            "insert into albums (path, title, visibility, date) values "
-            "(?, ?, ?, ?)", (album_path, album.title, visibility,
-                             _serial_date(album.date_range[0]))
+            "insert into albums (path, title, visibility, start_date, "
+            "end_date) values (?, ?, ?, ?, ?)",
+            (album_path, album.title, visibility,
+             _serial_date(album.date_range[0]),
+             _serial_date(album.date_range[1]),)
         )
 
     def _relpath(self, path):
@@ -130,12 +132,12 @@ class PhotoBrain(object):
         return Photo(os.path.join(self.catalog.root_path, self.path))
 
 class AlbumBrain(object):
-    def __init__(self, catalog, path, title, visibility, date):
+    def __init__(self, catalog, path, title, visibility, start_date, end_date):
         self.catalog = catalog
         self.path = path
         self.title = title
         self.visibility = visibility
-        self.date = _parse_date(date)
+        self.date_range = (_parse_date(start_date), _parse_date(end_date))
 
     def get(self):
         return Album(os.path.join(self.catalog.root_path, self.path))
@@ -183,5 +185,6 @@ init_sql = [
     "    path text unique primary key,"
     "    title text,"
     "    visibility text,"
-    "    date text)",
+    "    start_date text,"
+    "    end_date text)",
 ]

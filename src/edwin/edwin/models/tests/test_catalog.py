@@ -37,6 +37,7 @@ class TestCatalog(unittest.TestCase):
             os.mkdir(path)
             album = Album(path)
             album.title = album_name.title()
+            album.desc = 'Test %s' % album.title
             album.date_range = (
                 datetime.date(year, month, day),
                 datetime.date(year, month, day),
@@ -79,12 +80,11 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(brain.path, 'one')
         self.assertEqual(brain.title, 'One')
         self.assertEqual(brain.visibility, 'private')
-        self.assertEqual(brain.date, datetime.date(2007, 2, 16))
         self.assertEqual(
-            brain.get().date_range,
-            (datetime.date(2007, 2, 16), datetime.date(2007, 2, 16)
-             )
+            brain.date_range,
+            (datetime.date(2007, 2, 16), datetime.date(2007, 2, 16))
             )
+        self.assertEqual(brain.get().desc, 'Test One')
 
     def test_index_photo(self):
         import datetime
@@ -106,7 +106,10 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(brain.path, 'one')
         self.assertEqual(brain.title, 'One')
         self.assertEqual(brain.visibility, 'private')
-        self.assertEqual(brain.date, datetime.date(2007, 2, 16))
+        self.assertEqual(brain.date_range,
+                         (datetime.date(2007, 2, 16),
+                          datetime.date(2007, 2, 16))
+                         )
 
     def test_make_photo_visible(self):
         self.test_index_photo()
