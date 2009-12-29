@@ -50,6 +50,17 @@ class Catalog(object):
             elif isinstance(obj, Album):
                 self._index_album(obj, c)
 
+    def scan(self, album=None):
+        if album is None:
+            album = Album(self.root_path)
+        with self._cursor() as c:
+            for node in depthfirst(album):
+                if isinstance(node, Photo):
+                    self._index_photo(node, c)
+                elif isinstance(node, Album):
+                    if node.has_photos():
+                        self._index_album(node, c)
+
     def album(self, path):
         with self._cursor() as c:
             c.execute(
@@ -71,6 +82,25 @@ class Catalog(object):
             if not row:
                 raise KeyError(id)
             return PhotoBrain(self, id, *row)
+
+    def albums(self, visibility=None):
+        sql = ("select path, title, visibility, start_date, end_date "
+               "from albums")
+        with self._cursor() as c:
+            if visibility is not None:
+                sql += " where visibility=?"
+                args = (visibility,)
+            else:
+                args = ()
+            sql += ' order by start_date desc'
+
+            if args:
+                c.execute(sql, args)
+            else:
+                c.execute(sql)
+
+            for row in c:
+                yield AlbumBrain(self, *row)
 
     def _index_photo(self, photo, c):
         # Has photo been assigned id?
@@ -160,6 +190,15 @@ class CursorContextFactory(object):
         finally:
             cursor.close()
             self.release_connection(connection)
+
+def depthfirst(start):
+    def visit(node):
+        if hasattr(node, 'values'):
+            for child in node.values():
+                for value in visit(child):
+                    yield value
+        yield node
+    return visit(start)
 
 def _parse_date(value):
     parts = map(int, value.split('-'))

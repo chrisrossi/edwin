@@ -126,6 +126,30 @@ class TestCatalog(unittest.TestCase):
         brain = catalog.album('one')
         self.assertEqual(brain.visibility, 'public')
 
+    def test_albums(self):
+        self._make_repository()
+        root = self._get_root()
+        photo = root['one']['test03.jpg']
+        photo.visibility = 'public'
+        photo.save()
+
+        catalog = self._make_one()
+        catalog.scan()
+
+        albums = list(catalog.albums())
+        self.assertEqual(len(albums), 2)
+        self.assertEqual(albums[0].title, 'Two')
+        self.assertEqual(albums[1].title, 'One')
+
+        albums = list(catalog.albums('public'))
+        self.assertEqual(len(albums), 1)
+        self.assertEqual(albums[0].title, 'One')
+
+        albums = list(catalog.albums('private'))
+        self.assertEqual(len(albums), 1)
+        self.assertEqual(albums[0].title, 'Two')
+
+
 class TestCursorContextFactory(unittest.TestCase):
     def test_good(self):
         connection = DummyConnection()
