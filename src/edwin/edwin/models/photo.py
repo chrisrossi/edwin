@@ -1,6 +1,7 @@
 import datetime
 from edwin.models.metadata import Metadata
 from jpeg import jpeg
+import os
 
 class _MetadataProperty(object):
     _to_python = lambda self, x: x
@@ -107,6 +108,10 @@ class Photo(object):
                 self.date = datetime.date(t.year, t.month, t.day)
 
         self._evolve()
+
+    @property
+    def modified(self):
+        return os.path.getmtime(self.fpath)
 
     def save(self):
         self._metadata.save()
