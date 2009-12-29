@@ -64,7 +64,7 @@ class Catalog(object):
     def album(self, path):
         with self._cursor() as c:
             c.execute(
-                "select path, title, visibility, start_date, end_date "
+                "select path, title, visibility, start_date, end_date, month "
                 "from albums where path=?", (path,)
             )
             row = c.fetchone()
@@ -88,7 +88,7 @@ class Catalog(object):
                start_date=None,
                end_date=None,
                limit=None):
-        sql = ["select path, title, visibility, start_date, end_date "
+        sql = ["select path, title, visibility, start_date, end_date, month "
                "from albums",]
         args = []
         constraints = []
@@ -138,6 +138,11 @@ class Catalog(object):
             for row in c:
                 yield PhotoBrain(self, *row)
 
+    def months(self):
+        with self._cursor() as c:
+            c.execute('select distinct(month) from albums order by month desc')
+            return [row[0] for row in c]
+
     def _index_photo(self, photo, c):
         # Has photo been assigned id?
         if photo.id is None:
@@ -174,12 +179,14 @@ class Catalog(object):
             visibility = 'private'
 
         # Update record
+        date_range = album.date_range
+        start_date = _serial_date(date_range[0])
+        end_date = _serial_date(date_range[1])
+        month = start_date[:-3]
         c.execute(
             "insert into albums (path, title, visibility, start_date, "
-            "end_date) values (?, ?, ?, ?, ?)",
-            (album_path, album.title, visibility,
-             _serial_date(album.date_range[0]),
-             _serial_date(album.date_range[1]),)
+            "end_date, month) values (?, ?, ?, ?, ?, ?)",
+            (album_path, album.title, visibility, start_date, end_date, month)
         )
 
     def _relpath(self, path):
@@ -201,12 +208,14 @@ class PhotoBrain(object):
         return Photo(os.path.join(self.catalog.root_path, self.path))
 
 class AlbumBrain(object):
-    def __init__(self, catalog, path, title, visibility, start_date, end_date):
+    def __init__(self, catalog, path, title, visibility, start_date, end_date,
+                 month):
         self.catalog = catalog
         self.path = path
         self.title = title
         self.visibility = visibility
         self.date_range = (_parse_date(start_date), _parse_date(end_date))
+        self.month = month
 
     def get(self):
         return Album(os.path.join(self.catalog.root_path, self.path))
@@ -265,5 +274,6 @@ init_sql = [
     "    title text,"
     "    visibility text,"
     "    start_date text,"
-    "    end_date text)",
+    "    end_date text,"
+    "    month text)",
 ]

@@ -212,6 +212,14 @@ class TestCatalog(unittest.TestCase):
         titles = [p.get().title for p in photos]
         self.assertEqual(titles, ['Test 02',])
 
+    def test_months(self):
+        self._make_repository()
+        catalog = self._make_one()
+        catalog.scan()
+        months = catalog.months()
+        self.assertEqual(len(months), 1)
+        self.assertEqual(months[0], '2007-02')
+
 class TestCursorContextFactory(unittest.TestCase):
     def test_good(self):
         connection = DummyConnection()
