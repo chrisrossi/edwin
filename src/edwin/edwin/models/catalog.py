@@ -75,25 +75,46 @@ class Catalog(object):
     def photo(self, id):
         with self._cursor() as c:
             c.execute(
-                "select path, modified, visibility, album_path from photos "
-                "where id=?", (id,)
+                "select path, modified, visibility, album_path, timestamp "
+                "from photos where id=?", (id,)
             )
             row = c.fetchone()
             if not row:
                 raise KeyError(id)
             return PhotoBrain(self, id, *row)
 
-    def albums(self, visibility=None):
-        sql = ("select path, title, visibility, start_date, end_date "
-               "from albums")
-        with self._cursor() as c:
-            if visibility is not None:
-                sql += " where visibility=?"
-                args = (visibility,)
-            else:
-                args = ()
-            sql += ' order by start_date desc'
+    def albums(self,
+               visibility=None,
+               start_date=None,
+               end_date=None,
+               limit=None):
+        sql = ["select path, title, visibility, start_date, end_date "
+               "from albums",]
+        args = []
+        constraints = []
+        if visibility is not None:
+            constraints.append('visibility=?')
+            args.append(visibility)
+        if start_date is not None:
+            constraints.append('start_date >= ?')
+            args.append(_serial_date(start_date))
+        if end_date is not None:
+            constraints.append('start_date < ?')
+            args.append(_serial_date(end_date))
 
+        if constraints:
+            sql.append('where')
+            sql.append(' and '.join(constraints))
+
+        sql.append('order by start_date desc')
+
+        if limit is not None:
+            sql.append('limit ?')
+            args.append(limit)
+
+        sql = ' '.join(sql)
+
+        with self._cursor() as c:
             if args:
                 c.execute(sql, args)
             else:
@@ -101,6 +122,21 @@ class Catalog(object):
 
             for row in c:
                 yield AlbumBrain(self, *row)
+
+    def photos(self, album, visibility=None):
+        sql = ("select id, path, modified, visibility, album_path, timestamp "
+               "from photos where album_path=?")
+        args = [self._relpath(album.path),]
+
+        if visibility is not None:
+            sql += " and visibility=?"
+            args.append(visibility)
+        sql += " order by timestamp asc, path asc"
+
+        with self._cursor() as c:
+            c.execute(sql, args)
+            for row in c:
+                yield PhotoBrain(self, *row)
 
     def _index_photo(self, photo, c):
         # Has photo been assigned id?
@@ -117,8 +153,9 @@ class Catalog(object):
         album_path = os.path.dirname(path)
         c.execute(
             "insert into photos (id, path, modified, visibility, "
-            "album_path) values(?,?,?,?,?)",
-            (photo.id, path, photo.modified, photo.visibility, album_path)
+            "album_path, timestamp) values(?,?,?,?,?,?)",
+            (photo.id, path, photo.modified, photo.visibility, album_path,
+             photo.timestamp)
         )
 
     def _index_album(self, album, c):
@@ -150,13 +187,15 @@ class Catalog(object):
         return path[len(self.root_path):].strip('/')
 
 class PhotoBrain(object):
-    def __init__(self, catalog, id, path, modified, visibility, album_path):
+    def __init__(self, catalog, id, path, modified, visibility, album_path,
+                 timestamp):
         self.catalog = catalog
         self.id = id
         self.path = path
         self.modified = modified
         self.visibility = visibility
         self.album_path = album_path
+        self.timestamp = timestamp
 
     def get(self):
         return Photo(os.path.join(self.catalog.root_path, self.path))
@@ -216,7 +255,8 @@ init_sql = [
     "    path text,"
     "    modified real,"
     "    visibility text,"
-    "    album_path text)",
+    "    album_path text,"
+    "    timestamp)",
 
     "create index photos_by_album_path on photos (album_path)",
 

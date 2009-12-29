@@ -149,6 +149,68 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(len(albums), 1)
         self.assertEqual(albums[0].title, 'Two')
 
+    def test_albums_by_date(self):
+        import datetime
+        self._make_repository()
+        root = self._get_root()
+        catalog = self._make_one()
+        catalog.scan()
+
+        albums = list(catalog.albums(
+            start_date=datetime.date(2007, 2, 16),
+            end_date=datetime.date(2007, 2, 17)
+        ))
+
+        self.assertEqual(len(albums), 1)
+        self.assertEqual(albums[0].title, 'One')
+
+    def test_albums_limit(self):
+        self._make_repository()
+        root = self._get_root()
+        catalog = self._make_one()
+        catalog.scan()
+
+        albums = list(catalog.albums(limit=1))
+        self.assertEqual(len(albums), 1)
+        self.assertEqual(albums[0].title, 'Two')
+
+
+    def test_photos(self):
+        self._make_repository()
+        root = self._get_root()
+        photo = root['one']['test03.jpg']
+        photo.visibility = 'public'
+        photo.save()
+        photo = root['one']['test01.jpg']
+        photo.visibility = 'public'
+        photo.save()
+        photo = root['one']['test02.jpg']
+        photo.visibility = 'private'
+        photo.save()
+
+        catalog = self._make_one()
+        catalog.scan()
+
+        photos = list(catalog.photos(root['one']))
+        self.assertEqual(len(photos), 5)
+        titles = [p.get().title for p in photos]
+        self.assertEqual(titles, ['Test 00', 'Test 01', 'Test 02', 'Test 03',
+                                  'Test 04'])
+
+        photos = list(catalog.photos(root['one'], 'new'))
+        self.assertEqual(len(photos), 2)
+        titles = [p.get().title for p in photos]
+        self.assertEqual(titles, ['Test 00', 'Test 04'])
+
+        photos = list(catalog.photos(root['one'], 'public'))
+        self.assertEqual(len(photos), 2)
+        titles = [p.get().title for p in photos]
+        self.assertEqual(titles, ['Test 01', 'Test 03'])
+
+        photos = list(catalog.photos(root['one'], 'private'))
+        self.assertEqual(len(photos), 1)
+        titles = [p.get().title for p in photos]
+        self.assertEqual(titles, ['Test 02',])
 
 class TestCursorContextFactory(unittest.TestCase):
     def test_good(self):
