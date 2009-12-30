@@ -53,19 +53,21 @@ class OldMetadataTests(unittest.TestCase):
 class MetadataTests(unittest.TestCase):
     def setUp(self):
         import os
+        import shutil
         import sys
         import tempfile
         here = os.path.dirname(sys.modules[__name__].__file__)
-        fd, fname = tempfile.mkstemp('.jpg', 'edwin-test')
-        f = os.fdopen(fd, 'wb')
-        f.write(open(os.path.join(here, 'test.jpg')).read())
-        f.close()
+        tmpdir = tempfile.mkdtemp('_test', 'edwin_')
+        src = os.path.join(here, 'test.jpg')
+        dst = os.path.join(tmpdir, 'test.jpg')
+        shutil.copy(src, dst)
 
-        self.fname = fname
+        self.fname = dst
+        self.tmpdir = tmpdir
 
     def tearDown(self):
-        import os
-        os.remove(self.fname)
+        import shutil
+        shutil.rmtree(self.tmpdir)
 
     def test_it(self):
         from edwin.models.metadata import Metadata
