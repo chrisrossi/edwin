@@ -14,11 +14,9 @@ class Catalog(object):
 
     _version = None
 
-    def __init__(self, root_path, connection_factory, release_connection):
+    def __init__(self, root_path, connection_manager):
         self.root_path = root_path
-        self._cursor = CursorContextFactory(
-            connection_factory, release_connection
-        )
+        self._cursor = CursorContextFactory(connection_manager)
 
         with self._cursor() as c:
             c.execute(
@@ -234,13 +232,12 @@ class AlbumBrain(object):
         return Album(os.path.join(self.catalog.root_path, self.path))
 
 class CursorContextFactory(object):
-    def __init__(self, get_connection, release_connection):
-        self.get_connection = get_connection
-        self.release_connection = release_connection
+    def __init__(self, connection_manager):
+        self._manager = connection_manager
 
     @contextmanager
     def __call__(self):
-        connection = self.get_connection()
+        connection = self._manager.get_connection()
         cursor = connection.cursor()
         try:
             yield cursor
@@ -250,7 +247,7 @@ class CursorContextFactory(object):
             raise
         finally:
             cursor.close()
-            self.release_connection(connection)
+            self._manager.release_connection(connection)
 
 def depthfirst(start):
     def visit(node):

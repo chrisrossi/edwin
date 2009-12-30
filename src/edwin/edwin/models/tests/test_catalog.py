@@ -12,10 +12,10 @@ class TestCatalog(unittest.TestCase):
             import shutil
             shutil.rmtree(self.root_path)
 
-    def _get_connection(self):
+    def get_connection(self):
         return self._connection
 
-    def _release_connection(self, connection):
+    def release_connection(self, connection):
         pass
 
     def _make_repository(self):
@@ -50,8 +50,7 @@ class TestCatalog(unittest.TestCase):
 
     def _make_one(self):
         from edwin.models.catalog import Catalog
-        return Catalog(self.root_path,
-                       self._get_connection, self._release_connection)
+        return Catalog(self.root_path, self)
 
     def _get_root(self):
         from edwin.models.album import Album
@@ -242,13 +241,9 @@ class TestCatalog(unittest.TestCase):
 class TestCursorContextFactory(unittest.TestCase):
     def test_good(self):
         connection = DummyConnection()
-        def get_connection():
-            return connection
-        def release_connection(c):
-            c.released = True
 
         from edwin.models.catalog import CursorContextFactory
-        factory = CursorContextFactory(get_connection, release_connection)
+        factory = CursorContextFactory(DummyConnectionManager(connection))
 
         with factory() as cursor:
             self.assertEqual(cursor.state, 'created')
@@ -259,13 +254,9 @@ class TestCursorContextFactory(unittest.TestCase):
 
     def test_bad(self):
         connection = DummyConnection()
-        def get_connection():
-            return connection
-        def release_connection(c):
-            c.released = True
 
         from edwin.models.catalog import CursorContextFactory
-        factory = CursorContextFactory(get_connection, release_connection)
+        factory = CursorContextFactory(DummyConnectionManager(connection))
 
         try:
             with factory() as cursor:
@@ -294,3 +285,13 @@ class DummyConnection(object):
 
     def close(self):
         self.closed = True
+
+class DummyConnectionManager(object):
+    def __init__(self, c):
+        self.c = c
+
+    def get_connection(self):
+        return self.c
+
+    def release_connection(self, c):
+        self.c.released = True
