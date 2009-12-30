@@ -3,6 +3,9 @@ import datetime
 from edwin.models.metadata import Metadata
 from jpeg import jpeg
 import os
+import re
+
+date_folder_re = re.compile('.*(\d\d\d\d).(\d\d).(\d\d).*')
 
 class _MetadataProperty(object):
     _serial = _deserial = lambda self, x: x
@@ -18,7 +21,8 @@ class _MetadataProperty(object):
 
     def __set__(self, photo, value):
         if value is None:
-            del photo._metadata[self.name]
+            if self.name in photo._metadata:
+                del photo._metadata[self.name]
         else:
             photo._metadata[self.name] = self._serial(value)
 
@@ -79,15 +83,25 @@ class Photo(object):
         self._metadata = Metadata(fpath)
 
         if self.date is None:
-            t = self.timestamp
-            if t is not None:
-                self.date = datetime.date(t.year, t.month, t.day)
+            self.date = self._guess_date()
 
         self._evolve()
 
     @property
     def modified(self):
         return os.path.getmtime(self.fpath)
+
+    def _guess_date(self):
+        # First see if date is contained in folder structure
+        dirname = os.path.dirname(self.fpath)
+        match = date_folder_re.match(dirname)
+        if match is not None:
+            parts = map(int, match.groups())
+            return datetime.date(*parts)
+
+        t = self.timestamp
+        if t is not None:
+            return datetime.date(t.year, t.month, t.day)
 
     def _evolve(self):
         if self.version != self.SW_VERSION:

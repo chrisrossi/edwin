@@ -3,20 +3,22 @@ import unittest
 class TestPhoto(unittest.TestCase):
     def setUp(self):
         import os
+        import shutil
         import sys
         import tempfile
         here = os.path.dirname(sys.modules[__name__].__file__)
-        fd, fname = tempfile.mkstemp('.jpg', 'edwin-test')
-        f = os.fdopen(fd, 'wb')
-        f.write(open(os.path.join(here, 'test.jpg')).read())
-        f.close()
+        tmpdir = tempfile.mkdtemp('_test', 'edwin_')
+        for jpg in ['test.jpg', 'test2.jpg', 'test3.jpg']:
+            src = os.path.join(here, jpg)
+            dst = os.path.join(tmpdir, jpg)
+            shutil.copy(src, dst)
 
-        self.here = here
-        self.fname = fname
+        self.here = tmpdir
+        self.fname = os.path.join(tmpdir, 'test.jpg')
 
     def tearDown(self):
-        import os
-        os.remove(self.fname)
+        import shutil
+        shutil.rmtree(self.here)
 
     def test_metadata(self):
         from edwin.models.photo import Photo
@@ -82,6 +84,18 @@ class TestPhoto(unittest.TestCase):
 
         p = Photo(self.fname)
         self.assertEqual(p.date, expected)
+
+    def test_guess_date_from_folder_name(self):
+        import datetime
+        import os
+        import shutil
+        from edwin.models.photo import Photo
+        dirname = os.path.join(self.here, '2009', '12', '25.presents')
+        os.makedirs(dirname)
+        fname = os.path.join(dirname, 'test.jpg')
+        shutil.copy(self.fname, fname)
+        p = Photo(fname)
+        self.assertEqual(p.date, datetime.date(2009, 12, 25))
 
     def test_tags(self):
         from edwin.models.photo import Photo
