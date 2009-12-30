@@ -5,6 +5,8 @@ version = '0.1dev'
 
 INSTALL_REQUIRES=[
     'simplejson',
+    'Paste',
+    'PasteDeploy',
 ]
 
 setup(name='edwin',
@@ -28,6 +30,7 @@ setup(name='edwin',
           'console_scripts': [
               'scan=edwin.scripts.scan:main',
               'debug=edwin.scripts.debug:main',
+              'serve=edwin.application:main',
               ]
           }
       )

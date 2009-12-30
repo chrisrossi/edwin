@@ -64,7 +64,9 @@ def get_default_db_file():
 def get_default_photos_dir():
     return os.path.join(_here(), 'var', 'photos')
 
-def read_config(path, section="edwin"):
+def read_config(path=None, section="edwin"):
+    if path is None:
+        path = get_default_config_file()
     config = {}
     parser = ConfigParser()
     parser.read([path,])
