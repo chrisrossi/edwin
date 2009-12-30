@@ -24,8 +24,7 @@ class TestPhoto(unittest.TestCase):
         p.location = 'North Pole'
         p.title = 'Mrs. Clause and the elves'
         p.desc = 'Mrs. Clause and the elves blow off some steam.'
-        p.version = 2
-        p.save()
+        self.assertEqual(p.version, 1)
 
         del p
         p = Photo(self.fname)
@@ -35,22 +34,36 @@ class TestPhoto(unittest.TestCase):
         self.assertEqual(
             p.desc, 'Mrs. Clause and the elves blow off some steam.'
         )
-        self.assertEqual(p.version, 2)
+        self.assertEqual(p.version, 1)
 
     def test_evolve1(self):
         from edwin.models.photo import Photo
-        p = Photo(self.fname)
-        self.assertEqual(p.visibility, 'new')
-        p._metadata['published'] = True
-        p.save()
+        from edwin.models.metadata import OldMetadata
+        import os
+        metadata = OldMetadata(self.fname)
 
         p = Photo(self.fname)
+        new_metadata = p._metadata._file
+        p._metadata = metadata
+        p._evolve()
+        self.assertEqual(p.visibility, 'new')
+
+        os.remove(new_metadata)
+        metadata['published'] = True
+        del metadata['version']
+        metadata.save()
+        p = Photo(self.fname)
+        p._metadata = metadata
+        p._evolve()
         self.assertEqual(p.visibility, 'public')
 
-        p._metadata['published'] = False
-        p.save()
-
+        os.remove(new_metadata)
+        metadata['published'] = False
+        del metadata['version']
+        metadata.save()
         p = Photo(self.fname)
+        p._metadata = metadata
+        p._evolve()
         self.assertEqual(p.visibility, 'private')
 
     def test_timestamp(self):
@@ -65,7 +78,6 @@ class TestPhoto(unittest.TestCase):
 
         expected = datetime.date(1975, 7, 7)
         p.date = expected
-        p.save()
 
         p = Photo(self.fname)
         self.assertEqual(p.date, expected)
@@ -75,24 +87,17 @@ class TestPhoto(unittest.TestCase):
         p = Photo(self.fname)
         self.assertEqual(len(p.tags), 0)
         p.tags = ['foo', 'bar']
-        p.save()
 
         p = Photo(self.fname)
         self.assertEqual(len(p.tags), 2)
         self.assertEqual(p.tags[0], 'foo')
         self.assertEqual(p.tags[1], 'bar')
 
-    def test_bad_tag(self):
-        from edwin.models.photo import Photo
-        p = Photo(self.fname)
-        self.assertRaises(ValueError, setattr, p, 'tags', ['foo|bar'])
-
     def test_remove_tags(self):
         from edwin.models.photo import Photo
         p = Photo(self.fname)
         self.assertEqual(len(p.tags), 0)
         p.tags = ['foo', 'bar']
-        p.save()
 
         p = Photo(self.fname)
         self.assertEqual(len(p.tags), 2)
@@ -100,7 +105,6 @@ class TestPhoto(unittest.TestCase):
         self.assertEqual(p.tags[1], 'bar')
 
         p.tags = None
-        p.save()
 
         p = Photo(self.fname)
         self.assertEqual(p.tags, [])
@@ -110,7 +114,6 @@ class TestPhoto(unittest.TestCase):
         p = Photo(self.fname)
         self.assertEqual(p.id, None)
         p.id = '1234567890'
-        p.save()
 
         p = Photo(self.fname)
         self.assertEqual(p.id, '1234567890')

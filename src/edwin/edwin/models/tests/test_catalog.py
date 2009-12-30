@@ -47,7 +47,6 @@ class TestCatalog(unittest.TestCase):
                 shutil.copy(test_jpg, fpath)
                 photo = Photo(fpath)
                 photo.title = 'Test %02d' % i
-                photo.save()
 
     def _make_one(self):
         from edwin.models.catalog import Catalog
@@ -117,7 +116,6 @@ class TestCatalog(unittest.TestCase):
         root = self._get_root()
         photo = root['one']['test02.jpg']
         photo.visibility = 'public'
-        photo.save()
         catalog.index(photo)
 
         brain = catalog.photo(photo.id)
@@ -131,7 +129,6 @@ class TestCatalog(unittest.TestCase):
         root = self._get_root()
         photo = root['one']['test03.jpg']
         photo.visibility = 'public'
-        photo.save()
 
         catalog = self._make_one()
         catalog.scan()
@@ -205,13 +202,10 @@ class TestCatalog(unittest.TestCase):
         root = self._get_root()
         photo = root['one']['test03.jpg']
         photo.visibility = 'public'
-        photo.save()
         photo = root['one']['test01.jpg']
         photo.visibility = 'public'
-        photo.save()
         photo = root['one']['test02.jpg']
         photo.visibility = 'private'
-        photo.save()
 
         catalog = self._make_one()
         catalog.scan()

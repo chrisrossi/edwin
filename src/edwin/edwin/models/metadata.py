@@ -1,4 +1,8 @@
+from __future__ import with_statement
+
 from jpeg import jpeg
+import os
+import simplejson
 
 #
 # Class for representing our custom metadata for jpeg photos.  Metadata is
@@ -12,7 +16,7 @@ STATE_SCANNING=0
 STATE_INTAGNAME=1
 STATE_INTAGBODY=2
 
-class Metadata(dict):
+class OldMetadata(dict):
     """Class for representing our custom metadata for jpeg photos.  Metadata is
        stored in the comments section of jpeg files following our own format."""
 
@@ -117,3 +121,32 @@ class Metadata(dict):
         # Write comments back out
         jpeg.setComments( '%s%s%s' % ( before, meta, after ), self.fname )
 
+class Metadata(dict):
+    def __init__(self, path):
+        dirname, fname = os.path.split(path)
+        metadata_fname = '.%s.metadata' % fname
+        metadata_path = os.path.join(dirname, metadata_fname)
+        self._file = metadata_path
+        if not os.path.exists(metadata_path):
+            self._convert(path)
+        else:
+            self.update(simplejson.load(open(metadata_path)))
+
+    def _save(self):
+        with open(self._file, 'w') as f:
+            simplejson.dump(self, f, indent=4)
+
+    def __setitem__(self, name, value):
+        super(Metadata, self).__setitem__(name, value)
+        self._save()
+
+    def __delitem__(self, name):
+        super(Metadata, self).__delitem__(name)
+        self._save()
+
+    def _convert(self, path):
+        self.update(OldMetadata(path))
+        if 'published' in self:
+            published = self['published'] == 'True'
+            super(Metadata, self).__setitem__('published', published)
+        self._save()

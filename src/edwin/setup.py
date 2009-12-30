@@ -3,7 +3,9 @@ import sys, os
 
 version = '0.1dev'
 
-INSTALL_REQUIRES=[]
+INSTALL_REQUIRES=[
+    'simplejson',
+]
 
 setup(name='edwin',
       version=version,

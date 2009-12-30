@@ -23,7 +23,6 @@ class TestAlbum(unittest.TestCase):
             shutil.copy(test_jpg, fpath)
             photo = Photo(fpath)
             photo.title = 'Test %02d' % i
-            photo.save()
 
     def _make_subalbum(self, name, album):
         import os
@@ -131,13 +130,10 @@ class TestAlbum(unittest.TestCase):
         self._make_photos(3)
         photo = album['test00.jpg']
         photo.date = date(2007, 8, 8)
-        photo.save()
         photo = album['test01.jpg']
         photo.date = date(2007, 9, 9)
-        photo.save()
         photo = album['test02.jpg']
         photo.date = date(2008, 7, 7)
-        photo.save()
 
         album = self._make_one()
         self.assertEqual(album.date_range,

@@ -1,64 +1,36 @@
+import copy
 import datetime
 from edwin.models.metadata import Metadata
 from jpeg import jpeg
 import os
 
 class _MetadataProperty(object):
-    _to_python = lambda self, x: x
-
-    def _from_python(self, value):
-        if isinstance(value, basestring):
-            return value
-        return str(value)
+    _serial = _deserial = lambda self, x: x
 
     def __init__(self, name, default=None):
         self.name = name
         self.default = default
 
     def __get__(self, photo, cls=None):
-        return self._to_python(photo._metadata.get(self.name, self.default))
+        if self.name in photo._metadata:
+            return self._deserial(photo._metadata[self.name])
+        return copy.copy(self.default)
 
     def __set__(self, photo, value):
         if value is None:
             del photo._metadata[self.name]
         else:
-            photo._metadata[self.name] = self._from_python(value)
-
-
-class _IntMetadataProperty(_MetadataProperty):
-    _to_python = int
+            photo._metadata[self.name] = self._serial(value)
 
 class _DateMetadataProperty(_MetadataProperty):
-    def _from_python(self, value):
+    def _serial(self, value):
         if value is not None:
             return '-'.join(map(str, [value.year, value.month, value.day]))
 
-    def _to_python(self, value):
+    def _deserial(self, value):
         if value is not None:
             parts = map(int, value.split('-'))
             return datetime.date(*parts)
-
-class _ListMetadataProperty(_MetadataProperty):
-    """
-    Very naive list serialization, uses pipe '|' separator with no escapes.
-    """
-    def __get__(self, photo, cls=None):
-        value = super(_ListMetadataProperty, self).__get__(photo, cls)
-        if value is not None:
-            return map(self._to_python, value.split('|'))
-        return []
-
-    def __set__(self, photo, l):
-        if l is not None:
-            for item in l:
-                if '|' in item:
-                    raise ValueError(
-                        "Pipe character '|' not allowed in list item.")
-            value = '|'.join(l)
-        else:
-            value = None
-        super(_ListMetadataProperty, self).__set__(photo, value)
-
 
 class _ExifProperty(object):
     _to_python = lambda self, x: x
@@ -81,14 +53,11 @@ class _TimestampExifProperty(_ExifProperty):
     def _to_python(self, value):
         return datetime.datetime.strptime(value, self.DATETIME_FORMAT)
 
-def _as_bool(value):
-    return value.lower() in ['true', 't', 'yes', 'y', '1']
-
 class Photo(object):
     SW_VERSION = 1
 
     id = _MetadataProperty('id')
-    version = _IntMetadataProperty('version', 0)
+    version = _MetadataProperty('version', 0)
     title = _MetadataProperty('title')
     location = _MetadataProperty('location')
     photographer = _MetadataProperty('photographer')
@@ -96,7 +65,7 @@ class Photo(object):
     visibility = _MetadataProperty('visibility', 'new')
     timestamp = _TimestampExifProperty(0x9003)
     date = _DateMetadataProperty('date')
-    tags = _ListMetadataProperty('tags')
+    tags = _MetadataProperty('tags', default=[])
 
     def __init__(self, fpath):
         self.fpath = fpath
@@ -113,20 +82,18 @@ class Photo(object):
     def modified(self):
         return os.path.getmtime(self.fpath)
 
-    def save(self):
-        self._metadata.save()
-
     def _evolve(self):
         if self.version != self.SW_VERSION:
             for step in xrange(self.version + 1, self.SW_VERSION + 1):
                 methodname = '_evolve%d' % step
                 method = getattr(self, methodname)
                 method()
+        self.version = self.SW_VERSION
 
     def _evolve1(self):
         metadata = self._metadata
         if 'published' in metadata:
-            if _as_bool(metadata['published']):
+            if metadata['published']:
                 self.visibility = 'public'
             else:
                 self.visibility = 'private'

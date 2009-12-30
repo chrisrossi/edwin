@@ -160,8 +160,7 @@ class Catalog(object):
     def _index_photo(self, photo, c):
         # Has photo been assigned id?
         if photo.id is None:
-            photo.id = uuid.uuid1()
-            photo.save()
+            photo.id = str(uuid.uuid1())
 
         else:
             # Delete previous record
