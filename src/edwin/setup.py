@@ -25,5 +25,8 @@ setup(name='edwin',
       tests_require=INSTALL_REQUIRES + ['nose', 'coverage'],
       test_suite='edwin',
       entry_points={
+          'console_scripts': [
+              'scan=edwin.scripts.scan:main',
+              ]
           }
       )

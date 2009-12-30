@@ -7,3 +7,5 @@ include
 .egg$
 .egg-info$
 .coverage
+etc/edwin.ini
+.metadata$

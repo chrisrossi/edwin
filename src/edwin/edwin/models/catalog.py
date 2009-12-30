@@ -191,9 +191,12 @@ class Catalog(object):
 
         # Update record
         date_range = album.date_range
-        start_date = _serial_date(date_range[0])
-        end_date = _serial_date(date_range[1])
-        month = start_date[:-3]
+        if date_range is not None:
+            start_date = _serial_date(date_range[0])
+            end_date = _serial_date(date_range[1])
+            month = start_date[:-3]
+        else:
+            start_date = end_date = month = None
         c.execute(
             "insert into albums (path, title, visibility, start_date, "
             "end_date, month) values (?, ?, ?, ?, ?, ?)",
@@ -225,7 +228,10 @@ class AlbumBrain(object):
         self.path = path
         self.title = title
         self.visibility = visibility
-        self.date_range = (_parse_date(start_date), _parse_date(end_date))
+        if start_date is not None:
+            self.date_range = (_parse_date(start_date), _parse_date(end_date))
+        else:
+            self.date_range = None
         self.month = month
 
     def get(self):
@@ -259,11 +265,13 @@ def depthfirst(start):
     return visit(start)
 
 def _parse_date(value):
-    parts = map(int, value.split('-'))
-    return datetime.date(*parts)
+    if value is not None:
+        parts = map(int, value.split('-'))
+        return datetime.date(*parts)
 
 def _serial_date(date):
-    return '%04d-%02d-%02d' % (date.year, date.month, date.day)
+    if date is not None:
+        return '%04d-%02d-%02d' % (date.year, date.month, date.day)
 
 init_sql = [
     "create table version (version int)",

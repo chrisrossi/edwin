@@ -104,6 +104,8 @@ class Album(object):
         for item in self.values():
             if isinstance(item, Photo):
                 date = item.date
+                if date is None:
+                    continue
                 if earliest is None:
                     earliest = latest = date
                 elif date < earliest:

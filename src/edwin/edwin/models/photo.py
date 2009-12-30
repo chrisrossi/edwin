@@ -41,9 +41,13 @@ class _ExifProperty(object):
     def __get__(self, photo, cls=None):
         exif = getattr(photo, '_exif', None)
         if exif is None:
-            exif = jpeg.getExif(photo.fpath)
+            exif_tags = jpeg.getExif(photo.fpath)
+            if exif_tags is None:
+                exif = []
+            else:
+                exif = exif_tags.exif
             photo._exif = exif
-        for tag in exif.exif:
+        for tag in exif:
             if tag.intID == self.id:
                 return self._to_python(tag.value)
 
@@ -51,7 +55,10 @@ class _TimestampExifProperty(_ExifProperty):
     DATETIME_FORMAT = '%Y:%m:%d %H:%M:%S'
 
     def _to_python(self, value):
-        return datetime.datetime.strptime(value, self.DATETIME_FORMAT)
+        try:
+            return datetime.datetime.strptime(value, self.DATETIME_FORMAT)
+        except ValueError:
+            return None
 
 class Photo(object):
     SW_VERSION = 1

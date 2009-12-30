@@ -18,7 +18,8 @@ class TestCatalog(unittest.TestCase):
     def release_connection(self, connection):
         pass
 
-    def _make_repository(self):
+    def _make_repository(self, jpgs=['test.jpg', 'test2.jpg', 'test3.jpg'],
+                         date=(2007,2,15)):
         import datetime
         import os
         import shutil
@@ -28,23 +29,27 @@ class TestCatalog(unittest.TestCase):
         from edwin.models.photo import Photo
         self.root_path = tempfile.mkdtemp('_test', 'edwin_')
         here = os.path.dirname(sys.modules[__name__].__file__)
-        test_jpg = os.path.join(here, 'test.jpg')
+        test_jpgs = [os.path.join(here, jpg) for jpg in jpgs]
+        n = len(test_jpgs)
 
-        year, month, day = 2007, 2, 15
+        if date is not None:
+            year, month, day = 2007, 2, 15
         for album_name in ['one', 'two']:
-            day += 1
+            if date is not None:
+                day += 1
             path = os.path.join(self.root_path, album_name)
             os.mkdir(path)
             album = Album(path)
             album.title = album_name.title()
             album.desc = 'Test %s' % album.title
-            album.date_range = (
-                datetime.date(year, month, day),
-                datetime.date(year, month, day),
-                )
+            if date is not None:
+                album.date_range = (
+                    datetime.date(year, month, day),
+                    datetime.date(year, month, day),
+                    )
             for i in xrange(5):
                 fpath = os.path.join(album.path, 'test%02d.jpg' % i)
-                shutil.copy(test_jpg, fpath)
+                shutil.copy(test_jpgs[i%n], fpath)
                 photo = Photo(fpath)
                 photo.title = 'Test %02d' % i
 
@@ -84,10 +89,23 @@ class TestCatalog(unittest.TestCase):
             )
         self.assertEqual(brain.get().desc, 'Test One')
 
+    def test_index_album_no_date_range(self):
+        import datetime
+        self._make_repository(jpgs=['test2.jpg', 'test3.jpg'], date=None)
+        catalog = self._make_one()
+        root = self._get_root()
+        catalog.index(root['one'])
+        brain = catalog.album('one')
+        self.assertEqual(brain.path, 'one')
+        self.assertEqual(brain.title, 'One')
+        self.assertEqual(brain.visibility, 'private')
+        self.assertEqual(brain.date_range, None)
+        self.assertEqual(brain.get().desc, 'Test One')
+
     def test_index_photo(self):
         import datetime
         import os
-        self._make_repository()
+        self._make_repository(jpgs=['test.jpg'])
         catalog = self._make_one()
         root = self._get_root()
         photo = root['one']['test02.jpg']
@@ -124,7 +142,7 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(brain.visibility, 'public')
 
     def test_albums(self):
-        self._make_repository()
+        self._make_repository(jpgs=['test.jpg'])
         root = self._get_root()
         photo = root['one']['test03.jpg']
         photo.visibility = 'public'
@@ -197,7 +215,7 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(albums[0].title, 'One')
 
     def test_photos(self):
-        self._make_repository()
+        self._make_repository(jpgs=['test.jpg'])
         root = self._get_root()
         photo = root['one']['test03.jpg']
         photo.visibility = 'public'

@@ -11,6 +11,7 @@ class TestPhoto(unittest.TestCase):
         f.write(open(os.path.join(here, 'test.jpg')).read())
         f.close()
 
+        self.here = here
         self.fname = fname
 
     def tearDown(self):
@@ -117,3 +118,15 @@ class TestPhoto(unittest.TestCase):
 
         p = Photo(self.fname)
         self.assertEqual(p.id, '1234567890')
+
+    def test_bad_timestamp(self):
+        import os
+        from edwin.models.photo import Photo
+        p = Photo(os.path.join(self.here, 'test2.jpg'))
+        self.assertEqual(p.date, None)
+
+    def test_missing_exif(self):
+        import os
+        from edwin.models.photo import Photo
+        p = Photo(os.path.join(self.here, 'test3.jpg'))
+        self.assertEqual(p.date, None)
