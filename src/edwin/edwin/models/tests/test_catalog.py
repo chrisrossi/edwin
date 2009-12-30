@@ -249,12 +249,28 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(titles, ['Test 02',])
 
     def test_months(self):
-        self._make_repository()
+        from datetime import date
+        self._make_repository(jpgs=['test.jpg'])
+        root = self._get_root()
+        root['two'].date_range = (
+            date(2008, 3, 4),
+            date(2008, 3, 5)
+        )
+        root['one']['test02.jpg'].visibility = 'public'
         catalog = self._make_one()
         catalog.scan()
         months = catalog.months()
+        self.assertEqual(len(months), 2)
+        self.assertEqual(months[0], '2008-03')
+        self.assertEqual(months[1], '2007-02')
+
+        months = catalog.months('public')
         self.assertEqual(len(months), 1)
         self.assertEqual(months[0], '2007-02')
+
+        months = catalog.months('private')
+        self.assertEqual(len(months), 1)
+        self.assertEqual(months[0], '2008-03')
 
 class TestCursorContextFactory(unittest.TestCase):
     def test_good(self):

@@ -27,6 +27,7 @@ setup(name='edwin',
       entry_points={
           'console_scripts': [
               'scan=edwin.scripts.scan:main',
+              'debug=edwin.scripts.debug:main',
               ]
           }
       )

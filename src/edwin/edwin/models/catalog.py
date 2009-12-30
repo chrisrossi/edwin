@@ -150,9 +150,20 @@ class Catalog(object):
             for row in c:
                 yield PhotoBrain(self, *row)
 
-    def months(self):
+    def months(self, visibility=None):
         with self._cursor() as c:
-            c.execute('select distinct(month) from albums order by month desc')
+            sql = ['select distinct(month) from albums',]
+            args = []
+            if visibility is not None:
+                sql.append('where visibility=?')
+                args.append(visibility)
+            sql.append('order by month desc')
+
+            sql = ' '.join(sql)
+            if args:
+                c.execute(sql, args)
+            else:
+                c.execute(sql)
             return [row[0] for row in c]
 
     def _index_photo(self, photo, c):
