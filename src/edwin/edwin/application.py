@@ -32,21 +32,23 @@ class Application(object):
         return response
 
 
-def make_app(global_config, **config):
+def paste_app_factory(global_config, **config):
     app_config = global_config.copy()
     app_config.update(config)
     app_context = ApplicationContext(config=config)
     return wsgi_app(Application(app_context))
 
-
-def main(args=sys.argv[1:]):
+def make_app(config_file=None):
     from edwin.config import read_config
-    if args:
-        config = read_config(args[0])
-    else:
-        config = read_config()
+    return paste_app_factory({}, **read_config(config_file))
 
-    app = make_app({}, *config)
+def main(args=sys.argv[1:]): #pragma NO COVERAGE, called from console
+    from edwin.config import read_config
+    config_file = None
+    if args:
+        config_file = args[0]
+    config = read_config(config_file)
+    app = paste_app_factory({}, **config)
 
     from paste.httpserver import server_runner
     port = config.get('http_port', 8080)

@@ -3,10 +3,17 @@ import sys, os
 
 version = '0.1dev'
 
-INSTALL_REQUIRES=[
+INSTALL_REQUIRES = [
     'simplejson',
     'Paste',
     'PasteDeploy',
+]
+
+TESTS_REQUIRE = [
+    'nose',
+    'coverage',
+    'twill',
+    'wsgi-intercept',
 ]
 
 setup(name='edwin',

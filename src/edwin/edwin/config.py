@@ -66,9 +66,10 @@ def get_default_photos_dir():
 
 def read_config(path=None, section="edwin"):
     if path is None:
-        path = get_default_config_file()
+        path = get_default_config_file() #pragma NO COVERAGE
+    here = os.path.dirname(path)
     config = {}
-    parser = ConfigParser()
+    parser = ConfigParser({'here': here})
     parser.read([path,])
     for k, v in parser.items('DEFAULT'):
         config[k] = v
