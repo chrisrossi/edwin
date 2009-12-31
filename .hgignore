@@ -9,3 +9,4 @@ include
 .coverage
 etc/edwin.ini
 .metadata$
+.pt.py$

@@ -5,7 +5,7 @@ from jpeg import jpeg
 import os
 import re
 
-date_folder_re = re.compile('.*(\d\d\d\d).(\d\d).(\d\d).*')
+date_folder_re = re.compile('.*(\d\d\d\d).(\d\d?).(\d\d?).*')
 
 class _MetadataProperty(object):
     _serial = _deserial = lambda self, x: x

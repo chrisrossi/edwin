@@ -4,9 +4,10 @@ import sys, os
 version = '0.1dev'
 
 INSTALL_REQUIRES = [
-    'simplejson',
+    'Chameleon',
     'Paste',
     'PasteDeploy',
+    'simplejson',
 ]
 
 TESTS_REQUIRE = [

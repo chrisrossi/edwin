@@ -18,14 +18,11 @@ class ApplicationContext(object):
 
         # set up application resources
         db_file = all_config.get('db_file', get_default_db_file())
+        db_file = os.path.abspath(os.path.normpath(db_file))
         photos_dir = all_config.get('photos_dir', get_default_photos_dir())
-
+        photos_dir = os.path.abspath(os.path.normpath(photos_dir))
         if connection_manager is None:
             connection_manager = ThreadedConnectionManager(db_file)
-
-        for dirname in (os.path.dirname(db_file), photos_dir):
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
 
         self.catalog = Catalog(photos_dir, connection_manager)
         self.photos = Album(photos_dir)

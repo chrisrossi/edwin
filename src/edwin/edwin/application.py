@@ -1,9 +1,16 @@
+from chameleon.zpt.template import PageTemplateFile
+
+import datetime
 from edwin.config import ApplicationContext
 
 from happy.routes import RoutesDispatcher
+from happy.skin import Skin
+from happy.skin import SkinApplication
 from happy.sugar import wsgi_app
+from happy.templates import Templates
 
 import sys
+import time
 import webob
 
 
@@ -12,14 +19,29 @@ class Application(object):
     def __init__(self, app_context):
         self.app_context = app_context
 
+        # Set up skin
+        static_version = str(int(time.time()))
+        static = SkinApplication(
+            Skin('edwin.views:static'),
+            expires_timedelta=datetime.timedelta(days=3650)
+        )
+        templates = Templates(Skin('edwin.views:templates'), PageTemplateFile)
+        app_context.static_version = static_version
+        app_context.templates = templates
+
         # Routes
         from edwin.views.home import homepage_view
+        from edwin.views.month import month_view
         routes = RoutesDispatcher()
-        routes.register(homepage_view, '/')
+        routes.register(static, 'static', '/static/%s/*' % static_version)
+        routes.register(homepage_view, 'homepage', '/')
+        routes.register(month_view, 'month', '/archive/:year/:month/')
 
         self.responders = [
             routes,
         ]
+
+        app_context.routes = routes
 
     def __call__(self, request):
         request = webob.Request(request.environ.copy())
@@ -30,7 +52,6 @@ class Application(object):
                 break
 
         return response
-
 
 def paste_app_factory(global_config, **config):
     app_config = global_config.copy()
