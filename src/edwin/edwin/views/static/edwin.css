@@ -9,6 +9,8 @@ body {
 }
 
 h1 {
+    color: white;
+    font-weight: bold;
     font-size: 123.1%;
     margin-bottom: 1em;
 }
@@ -43,8 +45,28 @@ a:hover {
 #main {
     padding: 1em;
     margin: 1em;
+    padding-top: 0;
 }
 
 .albums li {
     margin-bottom: 0.2em;
+}
+
+.thumbnail {
+    float: left;
+    padding: 5px;
+    width: 110px;
+    height: 110px;
+    text-align: center;
+    vertical-align: center;
+}
+
+table.layout td {
+    vertical-align: top;
+    padding: 0.5em;
+    padding-top: 0;
+}
+
+table.layout td.right {
+    width: 18em;
 }

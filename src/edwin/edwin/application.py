@@ -8,6 +8,7 @@ from happy.skin import Skin
 from happy.skin import SkinApplication
 from happy.sugar import wsgi_app
 from happy.templates import Templates
+from happy.traversal import TraversalDispatcher
 
 import sys
 import time
@@ -44,12 +45,22 @@ class Application(object):
         routes.register(month_view, 'month', '/archive/:year/:month/')
         routes.register(images, 'images', '/image/*')
 
+        # Use traversal for albums and photos
+        from edwin.models.album import Album
+        from edwin.views.album import album_view
+        def root_factory(request):
+            return app_context.photos
+        albums = TraversalDispatcher(root_factory)
+        albums.register(album_view, Album)
+
         self.responders = [
             subapps,
             routes,
+            albums,
         ]
 
         app_context.routes = routes
+        app_context.images = images
 
     def __call__(self, request):
         request = webob.Request(request.environ.copy())

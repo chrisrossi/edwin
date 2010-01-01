@@ -145,3 +145,8 @@ class TestPhoto(unittest.TestCase):
         from edwin.models.photo import Photo
         p = Photo(os.path.join(self.here, 'test3.jpg'))
         self.assertEqual(p.date, None)
+
+    def test_image(self):
+        from edwin.models.photo import Photo
+        p = Photo(self.fname)
+        self.assertEqual(p.image.size, (3072, 2304))

@@ -7,12 +7,13 @@ from edwin.views.util import format_month
 def month_view(request, year, month):
     app_context = request.app_context
     catalog = app_context.catalog
+    app_url = request.application_url.rstrip('/')
     albums = []
     for album in catalog.albums(
         month='%s-%s' % (year, month), visibility=None):
         albums.append(dict(
             title=album.title,
-            url=model_url(request, album),
+            url='%s/%s' % (app_url, album.path),
             date_range=format_date_range(album.date_range),
             )
         )

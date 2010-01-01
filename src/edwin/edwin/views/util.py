@@ -17,14 +17,17 @@ def get_months(request, visibility=None):
 def format_month(year, month):
     return datetime.date(year, month, 1).strftime('%B %Y')
 
+def format_date(date):
+    return date.strftime("%B %d, %Y")
+
 def format_date_range(date_range):
     start, end = date_range
     if start == end:
-        return start.strftime("%B %d, %Y")
+        return format_date(start)
     elif start.year == end.year and start.month == end.month:
         return "%s-%s, %s" % (start.strftime('%B %d'),
                               end.strftime('%d'),
                               start.strftime('%Y'))
     elif start.year == end.year:
         return "%s - %s" % (start.strftime("%B %d"), end.strftime("%B %d, %Y"))
-    return "%s - %s" % (start.strftime("%B %d, %Y"), end.strftime("%B %d, %Y"))
+    return "%s - %s" % (format_date(start), format_date(end))

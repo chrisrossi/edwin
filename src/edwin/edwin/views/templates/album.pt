@@ -1,0 +1,31 @@
+<html xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:use-macro="api.base_macro">
+  <body>
+    <div metal:fill-slot="main-content">
+      <table class="layout">
+        <tr>
+          <td class="left">
+            <!-- Thumbnails -->
+            <div class="thumbnail" tal:repeat="photo photos">
+              <a href="${photo.url}">
+                <img src="${photo.src}" width="${photo.thumb.size[0]}"
+                     height="${photo.thumb.size[1]}"/>
+              </a>
+            </div>
+          </td>
+          <td class="right">
+            <h1>${title}</h1>
+            <div><b>${date_range}</b></div>
+            <br/>
+            <p>
+              <tal:block replace="structure desc"/>
+            </p>
+            <br/>
+            <a class="back_link" href="${back_link}">back</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
