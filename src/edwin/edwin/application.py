@@ -32,12 +32,17 @@ class Application(object):
         subapps = RoutesDispatcher(rewrite_paths=True)
         subapps.register(static, 'static', '/static/%s/*' % static_version)
 
+        # Image application (serves images and creates sizes)
+        from edwin.views.image import ImageApplication
+        images = ImageApplication(app_context.image_cache_dir)
+
         # Routes
         from edwin.views.home import homepage_view
         from edwin.views.month import month_view
         routes = RoutesDispatcher()
         routes.register(homepage_view, 'homepage', '/')
         routes.register(month_view, 'month', '/archive/:year/:month/')
+        routes.register(images, 'images', '/image/*')
 
         self.responders = [
             subapps,

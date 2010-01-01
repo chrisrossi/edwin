@@ -23,12 +23,16 @@ class ApplicationContext(object):
         photos_dir = os.path.abspath(os.path.normpath(photos_dir))
         if connection_manager is None:
             connection_manager = ThreadedConnectionManager(db_file)
+        image_cache_dir = all_config.get('image_cache_dir',
+                                         get_default_image_cache_dir())
+        image_cache_dir = os.path.abspath(os.path.normpath(image_cache_dir))
 
         self.catalog = Catalog(photos_dir, connection_manager)
         self.photos = Album(photos_dir)
         self.config = all_config
         self.db_file = db_file
         self.photos_dir = photos_dir
+        self.image_cache_dir = image_cache_dir
         self.connection_manager = connection_manager
 
 class ThreadedConnectionManager(object):
@@ -60,6 +64,9 @@ def get_default_db_file():
 
 def get_default_photos_dir():
     return os.path.join(_here(), 'var', 'photos')
+
+def get_default_image_cache_dir():
+    return os.path.join(_here(), 'var', 'cached_images')
 
 def read_config(path=None, section="edwin"):
     if path is None:

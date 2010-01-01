@@ -7,6 +7,7 @@ INSTALL_REQUIRES = [
     'Chameleon',
     'Paste',
     'PasteDeploy',
+    'PIL',
     'simplejson',
 ]
 

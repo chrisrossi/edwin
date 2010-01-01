@@ -1,6 +1,7 @@
 import copy
 import datetime
 from edwin.models.metadata import Metadata
+import Image
 from jpeg import jpeg
 import os
 import re
@@ -77,6 +78,7 @@ class Photo(object):
     timestamp = _TimestampExifProperty(0x9003)
     date = _DateMetadataProperty('date')
     tags = _MetadataProperty('tags', default=[])
+    size = _MetadataProperty('size')
 
     def __init__(self, fpath):
         self.fpath = fpath
@@ -85,11 +87,19 @@ class Photo(object):
         if self.date is None:
             self.date = self._guess_date()
 
+        if self.size is None:
+            image = Image.open(self.fpath)
+            self.size = image.size
+
         self._evolve()
 
     @property
     def modified(self):
         return os.path.getmtime(self.fpath)
+
+    @property
+    def image(self):
+        return Image.open(self.fpath)
 
     def _guess_date(self):
         # First see if date is contained in folder structure

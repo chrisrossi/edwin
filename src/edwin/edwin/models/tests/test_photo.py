@@ -28,6 +28,7 @@ class TestPhoto(unittest.TestCase):
         p.title = 'Mrs. Clause and the elves'
         p.desc = 'Mrs. Clause and the elves blow off some steam.'
         self.assertEqual(p.version, 1)
+        self.assertEqual(p.size, (3072, 2304))
 
         del p
         p = Photo(self.fname)
