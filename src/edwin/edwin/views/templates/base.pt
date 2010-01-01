@@ -6,27 +6,31 @@
     <title metal:define-slot="head-title">Edwin Photo Archive</title>
     <link rel="stylesheet"
           href="${api.static_url}/yui-2.8.0r4-reset-fonts-grids.css"/>
+    <link rel="stylesheet" href="${api.static_url}/edwin.css"/>
   </head>
   <body>
-    <div id="doc3" class="yui-t2">
+    <div id="doc3" class="yui-t1">
       <div id="hd"><!-- header --></div>
       <div id="bd">
         <div class="yui-b">
-          <!-- Sidebar -->
-          <p>
-            <a href="${api.application_url}">home</a>
-          </p>
-          <p>
-            Archive
-          </p>
-          <ul>
-            <li tal:repeat="month api.months">
-              <a href="${month.url}">${month.label}</a>
-            </li>
-          </ul>
+
+          <div id="sidebar">
+            <!-- Sidebar -->
+            <p>
+              <a href="${api.application_url}">home</a>
+            </p>
+            <br/>
+            <h1>Archive</h1>
+            <ul>
+              <li tal:repeat="month api.months">
+                <a href="${month.url}">${month.label}</a>
+              </li>
+            </ul>
+          </div>
+
         </div>
         <div id="yui-main">
-          <div class="yui-b">
+          <div class="yui-b" id="main">
             <div metal:define-slot="main-content">
               Main content goes here.
             </div>

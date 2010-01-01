@@ -1,0 +1,50 @@
+body, html {
+    font-size: 108%;
+    background: black;
+    color: lightblue;
+}
+
+body {
+    padding: 1em;
+}
+
+h1 {
+    font-size: 123.1%;
+    margin-bottom: 1em;
+}
+
+a:link {
+    text-decoration: none;
+    color: CornflowerBlue;
+}
+a:visited {
+    text-decoration: none;
+    color: CornflowerBlue;
+}
+a:active {
+    text-decoration: none;
+    color: white;
+}
+a:hover {
+    text-decoration: none;
+    color: white;
+}
+
+#sidebar {
+    border: 1px dashed lightblue;
+    padding: 1em;
+    margin: 1em;
+}
+
+#sidebar li {
+    margin-bottom: 0.2em;
+}
+
+#main {
+    padding: 1em;
+    margin: 1em;
+}
+
+.albums li {
+    margin-bottom: 0.2em;
+}

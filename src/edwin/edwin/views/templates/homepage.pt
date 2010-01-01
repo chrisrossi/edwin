@@ -4,9 +4,11 @@
   <body>
     <div metal:fill-slot="main-content">
         <h1>Recent Albums</h1>
-        <p tal:repeat="album recent_albums">
-          <a href="${album.url}">${album.title} (${album.date_range})</a>
-        </p>
+        <ul class="albums">
+          <li tal:repeat="album recent_albums">
+            <a href="${album.url}">${album.title} (${album.date_range})</a>
+          </li>
+        </ul>
     </div>
   </body>
 </html>
