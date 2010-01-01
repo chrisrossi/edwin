@@ -1,0 +1,14 @@
+<html xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:use-macro="api.base_macro">
+  <body>
+    <div metal:fill-slot="main-content">
+        <h1>${date}</h1>
+        <ul class="albums">
+          <li tal:repeat="album albums">
+            <a href="${album.url}">${album.title} (${album.date_range})</a>
+          </li>
+        </ul>
+    </div>
+  </body>
+</html>

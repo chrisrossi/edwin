@@ -58,9 +58,11 @@ class TwillTest(unittest.TestCase):
         def get_app():
             return app
 
-        # Register wsgi intercept
+        # Register wsgi intercept and visit homepage to start off
         import twill
         twill.add_wsgi_intercept('localhost', 8080, get_app)
+        twill.commands.go('http://localhost:8080/')
+        twill.commands.code(200)
 
         self.tmpdir = tmpdir
 
