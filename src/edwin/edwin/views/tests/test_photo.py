@@ -8,3 +8,5 @@ class TestPhotoView(TwillTest):
         b.follow('photo_02.jpg')
         b.find('Test 2')
         b.find('November 04, 1975')
+        b.follow('download')
+        b.code(200)

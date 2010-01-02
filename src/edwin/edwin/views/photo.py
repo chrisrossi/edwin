@@ -1,3 +1,4 @@
+from happy.static import FileResponse
 from happy.traversal import model_url
 
 from edwin.views.api import TemplateAPI
@@ -45,3 +46,8 @@ def photo_view(request, photo):
         back_link=back_link,
         download_link=model_url(request, photo, 'dl')
     )
+
+def download_photo_view(request, photo):
+    response = FileResponse(photo.fpath)
+    response.content_disposition = 'attachment; filename=%s' % photo.__name__
+    return response
