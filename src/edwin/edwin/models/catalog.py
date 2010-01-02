@@ -232,6 +232,12 @@ class PhotoBrain(object):
     def get(self):
         return Photo(os.path.join(self.catalog.root_path, self.path))
 
+    def url(self, request):
+        return '%s/%s' % (
+            request.application_url.rstrip('/'),
+            self.path.lstrip('/')
+        )
+
 class AlbumBrain(object):
     def __init__(self, catalog, path, title, visibility, start_date, end_date,
                  month):
@@ -247,6 +253,12 @@ class AlbumBrain(object):
 
     def get(self):
         return Album(os.path.join(self.catalog.root_path, self.path))
+
+    def url(self, request):
+        return '%s/%s' % (
+            request.application_url.rstrip('/'),
+            self.path.lstrip('/')
+        )
 
 class CursorContextFactory(object):
     def __init__(self, connection_manager):

@@ -6,14 +6,14 @@ THUMBNAIL_SIZE = (100, 100)
 
 def album_view(request, album):
     app_context = request.app_context
+    catalog = app_context.catalog
     images = app_context.images
     images_route = app_context.routes['images']
     photos = []
-    for photo in album.photos():
-        # XXX Check visibility
-        thumbnail = images.version(photo, THUMBNAIL_SIZE)
+    for photo in catalog.photos(album, visibility='public'):
+        thumbnail = images.version(photo.get(), THUMBNAIL_SIZE)
         photos.append(dict(
-            url=model_url(request, photo),
+            url=photo.url(request),
             thumb=thumbnail,
             src=images_route.url(request, subpath=[thumbnail['fname'],]),
             )

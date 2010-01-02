@@ -47,16 +47,19 @@ class Application(object):
 
         # Use traversal for albums and photos
         from edwin.models.album import Album
+        from edwin.models.photo import Photo
         from edwin.views.album import album_view
+        from edwin.views.photo import photo_view
         def root_factory(request):
             return app_context.photos
-        albums = TraversalDispatcher(root_factory)
-        albums.register(album_view, Album)
+        photos = TraversalDispatcher(root_factory)
+        photos.register(album_view, Album)
+        photos.register(photo_view, Photo)
 
         self.responders = [
             subapps,
             routes,
-            albums,
+            photos,
         ]
 
         app_context.routes = routes

@@ -70,3 +70,7 @@ table.layout td {
 table.layout td.right {
     width: 18em;
 }
+
+.photo {
+    width: 720px;
+}

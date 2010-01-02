@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="${api.static_url}/edwin.css"/>
   </head>
   <body>
-    <div id="doc3" class="yui-t1">
+    <div id="doc3" class="yui-t1" metal:define-slot="container">
       <div id="hd"><!-- header --></div>
       <div id="bd">
         <div class="yui-b">

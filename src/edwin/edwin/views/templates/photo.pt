@@ -1,0 +1,36 @@
+<html xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:use-macro="api.base_macro">
+  <body>
+    <div metal:fill-slot="container" id="doc3">
+      <table class="layout">
+        <tr>
+          <td class="left photo">
+            <img src="${src}" width="${width}" height="${height}"/>
+          </td>
+          <td class="right">
+            <div class="nav">
+              <a href="${prev_link|None}" tal:omit-tag="not prev_link">prev</a>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <a href="${next_link|None}" tal:omit-tag="not next_link">next</a>
+            </div>
+            <br/>
+            <h1>${title}</h1>
+            <div><b>${location}</b></div>
+            <div>${date}</div>
+            <br/>
+            <p>
+              <tal:block replace="structure desc"/>
+            </p>
+            <br/>
+            <a class="download_link" href="${download_link}">
+              download original
+            </a>
+            <br/>
+            <a class="back_link" href="${back_link}">back</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
