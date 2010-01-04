@@ -10,6 +10,7 @@ from happy.sugar import wsgi_app
 from happy.templates import Templates
 from happy.traversal import TraversalDispatcher
 
+import os
 import sys
 import time
 import webob
@@ -76,24 +77,44 @@ class Application(object):
 
         return response
 
-def paste_app_factory(global_config, **config):
-    app_config = global_config.copy()
-    app_config.update(config)
-    app_context = ApplicationContext(config=config)
-    return wsgi_app(Application(app_context))
+def login_middleware(app, config_file=None):
+    from happy.login import FormLoginMiddleware
+    from happy.login import HtpasswdBroker
+    from happy.login import FlatFilePrincipalsBroker
+    from happy.login import RandomUUIDCredentialBroker
+    from edwin.config import read_config
+    if config_file is None:
+        from edwin.config import get_default_config_file
+        config_file = get_default_config_file()
+    config = read_config(config_file, 'login')
+    here = os.path.dirname(config_file)
+    htpasswd_file = config.get('htpasswd_file', os.path.join(here, 'htpasswd'))
+    principals_file = config.get('principals_file',
+                                 os.path.join(here, 'principals'))
+    credentials_file = config.get('credentials_file',
+                                  os.path.join(here, 'credentials.db'))
+    return FormLoginMiddleware(
+        app,
+        HtpasswdBroker(htpasswd_file),
+        FlatFilePrincipalsBroker(principals_file),
+        RandomUUIDCredentialBroker(credentials_file),
+    )
 
 def make_app(config_file=None):
     from edwin.config import read_config
-    return paste_app_factory({}, **read_config(config_file))
+    config = read_config(config_file)
+    app = Application(ApplicationContext(config=config))
+    app = login_middleware(app)
+    return wsgi_app(app)
 
 def main(args=sys.argv[1:]): #pragma NO COVERAGE, called from console
     from edwin.config import read_config
     config_file = None
     if args:
         config_file = args[0]
-    config = read_config(config_file)
-    app = paste_app_factory({}, **config)
+    app = make_app(config_file)
 
     from paste.httpserver import server_runner
+    config = read_config(config_file)
     port = config.get('http_port', 8080)
     server_runner(app, {}, port=port)

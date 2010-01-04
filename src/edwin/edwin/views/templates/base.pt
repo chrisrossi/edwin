@@ -10,7 +10,13 @@
   </head>
   <body>
     <div id="doc3" class="yui-t1" metal:define-slot="container">
-      <div id="hd"><!-- header --></div>
+      <div id="hd">
+        <!-- header -->
+        <div tal:condition="api.user" id="admin-header">
+          You are logged in as ${api.user}.
+          <a href="${api.logout_url}">log out</a>
+        </div>
+      </div>
       <div id="bd">
         <div class="yui-b">
 

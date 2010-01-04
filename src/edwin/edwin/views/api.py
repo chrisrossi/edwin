@@ -11,6 +11,8 @@ class TemplateAPI(object):
             self.application_url.rstrip('/'),
             app_context.static_version
         )
+        self.user = request.remote_user
+        self.logout_url = self.application_url.rstrip('/') + '/logout'
         self._request = request
 
     @property

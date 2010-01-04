@@ -42,6 +42,11 @@ a:hover {
     margin-bottom: 0.2em;
 }
 
+#admin-header {
+    text-align: right;
+    font-size: 85%;
+}
+
 #main {
     padding: 1em;
     margin: 1em;
