@@ -7,6 +7,11 @@ import threading
 from edwin.models.album import Album
 from edwin.models.catalog import Catalog
 
+here = os.path.dirname(os.path.dirname(
+    os.path.abspath(os.path.normpath(sys.argv[0]))
+))
+
+
 class ApplicationContext(object):
     def __init__(self, config_file=None, config=None, connection_manager=None):
         # read config
@@ -51,22 +56,19 @@ class ThreadedConnectionManager(object):
         assert connection is self._connections.connection
         del self._connections.connection
 
-def _here():
-    here = sys.argv[0]
-    here = os.path.abspath(os.path.normpath(here))
-    return os.path.dirname(os.path.dirname(here))
+
 
 def get_default_config_file():
-    return os.path.join(_here(), 'etc', 'edwin.ini')
+    return os.path.join(here, 'etc', 'edwin.ini')
 
 def get_default_db_file():
-    return os.path.join(_here(), 'var', 'photos.catalog')
+    return os.path.join(here, 'var', 'photos.catalog')
 
 def get_default_photos_dir():
-    return os.path.join(_here(), 'var', 'photos')
+    return os.path.join(here, 'var', 'photos')
 
 def get_default_image_cache_dir():
-    return os.path.join(_here(), 'var', 'cached_images')
+    return os.path.join(here, 'var', 'cached_images')
 
 def read_config(path=None, section="edwin"):
     if path is None:
