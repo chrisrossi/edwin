@@ -1,3 +1,4 @@
+from happy.acl import has_permission
 from edwin.views.util import get_months
 
 class TemplateAPI(object):
@@ -13,6 +14,7 @@ class TemplateAPI(object):
         )
         self.user = request.remote_user
         self.logout_url = self.application_url.rstrip('/') + '/logout'
+        self.is_admin = has_permission(request, 'administer')
         self._request = request
 
     @property

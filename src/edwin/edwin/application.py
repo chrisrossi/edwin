@@ -2,7 +2,10 @@ from chameleon.zpt.template import PageTemplateFile
 
 import datetime
 from edwin.config import ApplicationContext
-
+from happy.acl import ALL_PERMISSIONS
+from happy.acl import Allow
+from happy.acl import Deny
+from happy.acl import Everyone
 from happy.routes import RoutesDispatcher
 from happy.skin import Skin
 from happy.skin import SkinApplication
@@ -20,6 +23,12 @@ class Application(object):
 
     def __init__(self, app_context):
         self.app_context = app_context
+        app_context.photos.__acl__ = [
+            (Allow, Everyone, 'view'),
+            (Allow, 'group.Administrators',
+             'view, create, edit, delete, administer'),
+            (Deny, Everyone, ALL_PERMISSIONS),
+        ]
 
         # Set up skin
         static_version = str(int(time.time()))
@@ -70,6 +79,7 @@ class Application(object):
     def __call__(self, request):
         request = webob.Request(request.environ.copy())
         request.app_context = self.app_context
+        request.context = self.app_context.photos # overridden by traversal
         for responder in self.responders:
             response = responder(request)
             if response is not None:
