@@ -25,8 +25,7 @@ class Application(object):
         self.app_context = app_context
         app_context.photos.__acl__ = [
             (Allow, Everyone, 'view'),
-            (Allow, 'group.Administrators',
-             'view, create, edit, delete, administer'),
+            (Allow, 'group.Administrators', ALL_PERMISSIONS),
             (Deny, Everyone, ALL_PERMISSIONS),
         ]
 

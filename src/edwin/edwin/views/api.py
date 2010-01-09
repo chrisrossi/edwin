@@ -4,6 +4,8 @@ from edwin.views.util import get_months
 class TemplateAPI(object):
 
     def __init__(self, request):
+        self._request = request
+
         app_context = request.app_context
         self.templates = app_context.templates
         self.base_macro = self.templates['base.pt'].macros['base']
@@ -14,10 +16,11 @@ class TemplateAPI(object):
         )
         self.user = request.remote_user
         self.logout_url = self.application_url.rstrip('/') + '/logout'
-        self.is_admin = has_permission(request, 'administer')
-        self._request = request
+        self.load_jquery = self.may('edit')
 
     @property
     def months(self):
         return get_months(self._request, visibility=None)
 
+    def may(self, permission):
+        return has_permission(self._request, permission)
