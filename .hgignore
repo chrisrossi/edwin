@@ -10,3 +10,6 @@ include
 etc/edwin.ini
 .metadata$
 .pt.py$
+etc/credentials.db
+etc/htpasswd
+etc/principals

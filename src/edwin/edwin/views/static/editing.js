@@ -1,0 +1,82 @@
+function submit_dynamic(form) {
+}
+
+function make_input(fields, element) {
+    var field = fields[element.id];
+    var handler = function(event){
+        var orig_element = $(this).data('orig_element');
+        var empty = $(this).data('empty');
+        $(this).replaceWith(orig_element);
+        if (empty) {
+            orig_element.html('');
+        }
+        decorate_field(orig_element);
+        orig_element.removeClass('hover_field');
+        submit_dynamic(this);
+    };
+    var value = $(element).html().trim();
+    var empty = $(element).data('empty');
+    if (empty) {
+        value = '';
+    }
+    var form = field['factory'](field, value)
+        .submit(handler)
+        .children()
+        .addClass('dynamic_field')
+        .change(handler)
+        .blur(handler);
+    form.data('orig_element', $(element))
+        .data('empty', empty);
+    $(element).replaceWith(form);
+    var input = form[0];
+    input.focus();
+}
+
+function make_text_input(field, value) {
+    return $('<form><input></form>')
+        .children()
+        .attr('name', field['name'])
+        .attr('value', value)
+        .end();
+}
+
+function make_textarea_input(field, value) {
+    return $('<form><textarea rows="5" cols="30"></textarea></form>')
+        .children()
+        .attr('name', field['name'])
+        .html(value)
+        .end();
+}
+
+function decorate_fields(fields) {
+    $('.field').each(
+        function(){
+            decorate_field($(this));
+        }
+    );
+}
+
+function decorate_field(field) {
+    field.hover(
+        // Show outline when hovering
+        function() {
+            $(this).addClass('hover_field');
+        },
+        function() {
+            $(this).removeClass('hover_field');
+        }
+    ).click(
+        // Convert to dynamic input field when clicked
+        function() {
+            make_input(fields, this);
+        }
+    );
+
+    // Make sure empty fields are visible
+    empty = ! field.html().trim();
+    field.data('empty', empty);
+    var metadata = fields[field.attr('id')];
+    if (empty) {
+        field.addClass('empty_field').html(metadata['label']);
+    }
+}

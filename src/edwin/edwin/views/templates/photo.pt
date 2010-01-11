@@ -1,6 +1,16 @@
 <html xmlns:metal="http://xml.zope.org/namespaces/metal"
       xmlns:tal="http://xml.zope.org/namespaces/tal"
       metal:use-macro="api.base_macro">
+  <head>
+    <metal:slot fill-slot="page_headers" tal:omit-tag="">
+      <link rel="stylesheet" href="${api.static_url}/editing.css"
+            tal:condition="api.may('edit')"/>
+      <script src="${api.static_url}/editing.js" type="text/javascript"
+              tal:condition="api.may('edit')"></script>
+      <script src="${api.static_url}/photo.js" type="text/javascript"
+              tal:condition="api.may('edit')"></script>
+    </metal:slot>
+  </head>
   <body>
     <div metal:fill-slot="container" id="doc3">
       <table class="layout">
@@ -15,11 +25,11 @@
               <a href="${next_link|None}" tal:omit-tag="not next_link">next</a>
             </div>
             <br/>
-            <h1>${title}</h1>
-            <div><b>${location}</b></div>
-            <div>${date}</div>
+            <h1 class="field" id="photo_title">${title}</h1>
+            <div class="field" id="photo_location"><b>${location}</b></div>
+            <div class="field" id="photo_date">${date}</div>
             <br/>
-            <p>
+            <p class="field" id="photo_desc">
               <tal:block replace="structure desc"/>
             </p>
             <br/>
