@@ -9,6 +9,7 @@ INSTALL_REQUIRES = [
     'PasteDeploy',
     'PIL',
     'simplejson',
+    'happy',
 ]
 
 TESTS_REQUIRE = [
