@@ -16,6 +16,9 @@ STATE_SCANNING=0
 STATE_INTAGNAME=1
 STATE_INTAGBODY=2
 
+import re
+COMMENT_RE = re.compile('<!--.+-->')
+
 class OldMetadata(dict):
     """Class for representing our custom metadata for jpeg photos.  Metadata is
        stored in the comments section of jpeg files following our own format."""
@@ -78,6 +81,7 @@ class OldMetadata(dict):
                 if c[i:i+len(closingTag)] == closingTag:
                     # Store tag in metadata
                     tagbody = c[iTagbody:i]
+                    tagbody = COMMENT_RE.sub('', tagbody)
                     self[tagname] = tagbody
                     state = STATE_SCANNING
                     i += len(closingTag)
