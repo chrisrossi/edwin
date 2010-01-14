@@ -1,4 +1,17 @@
+function ajax_success(data) {
+    for (name in data) {
+        var element = $('.field#' + name);
+        element.removeClass('empty_field').html(data[name]);
+        decorate_field(element);
+    }
+}
+
 function submit_dynamic(form) {
+    jQuery.ajax({
+        success: ajax_success,
+        data: $(form).serialize(),
+        dataType: 'json',
+    })
 }
 
 function make_input(fields, element) {
@@ -22,7 +35,10 @@ function make_input(fields, element) {
     var form = field['factory'](field, value)
         .submit(handler)
         .children()
+        .attr('class', $(element).attr('class'))
+        .attr('id', $(element).attr('id'))
         .addClass('dynamic_field')
+        .removeClass('empty_field')
         .change(handler)
         .blur(handler);
     form.data('orig_element', $(element))
@@ -41,7 +57,7 @@ function make_text_input(field, value) {
 }
 
 function make_textarea_input(field, value) {
-    return $('<form><textarea rows="5" cols="30"></textarea></form>')
+    return $('<form><textarea rows="5" cols="22"></textarea></form>')
         .children()
         .attr('name', field['name'])
         .html(value)

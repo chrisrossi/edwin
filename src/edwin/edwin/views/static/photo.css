@@ -1,0 +1,42 @@
+.photo {
+    width: 720px;
+}
+
+.field {
+    background: black;
+    border: 1px solid black;
+    color: lightblue;
+    padding: 0;
+    margin: 0;
+}
+
+.hover_field {
+    border: 1px solid lightblue;
+}
+
+.empty_field {
+    color: darkgray;
+}
+
+.dynamic_field {
+    border: 1px solid lightblue;
+}
+
+.field#title {
+    color: white;
+    font-weight: bold;
+    font-size: 123.1%;
+    margin-bottom: 1em;
+}
+
+.field#location {
+    font-weight: bold;
+}
+
+.field#desc {
+    font-size: 93%;
+}
+
+input.field {
+    width: 100%;
+}

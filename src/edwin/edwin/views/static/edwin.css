@@ -76,6 +76,14 @@ table.layout td.right {
     width: 18em;
 }
 
-.photo {
-    width: 720px;
+.back_link {
+    font-size: 85%;
+}
+
+.download_link {
+    font-size: 85%;
+}
+
+.nav a {
+    font-size: 85%;
 }

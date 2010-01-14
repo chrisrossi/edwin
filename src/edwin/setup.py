@@ -10,6 +10,7 @@ INSTALL_REQUIRES = [
     'PIL',
     'simplejson',
     'happy',
+    'python-dateutil',
 ]
 
 TESTS_REQUIRE = [

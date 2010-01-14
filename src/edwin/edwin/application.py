@@ -59,12 +59,14 @@ class Application(object):
         from edwin.models.photo import Photo
         from edwin.views.album import album_view
         from edwin.views.photo import photo_view
+        from edwin.views.photo import edit_photo_view
         from edwin.views.photo import download_photo_view
         def root_factory(request):
             return app_context.photos
         photos = TraversalDispatcher(root_factory)
         photos.register(album_view, Album)
         photos.register(photo_view, Photo)
+        photos.register(edit_photo_view, Photo, 'edit.json')
         photos.register(download_photo_view, Photo, 'dl')
         self.responders = [
             subapps,

@@ -3,8 +3,14 @@
       metal:use-macro="api.base_macro">
   <head>
     <metal:slot fill-slot="page_headers" tal:omit-tag="">
-      <link rel="stylesheet" href="${api.static_url}/editing.css"
-            tal:condition="api.may('edit')"/>
+      <link rel="stylesheet" href="${api.static_url}/photo.css"/>
+      <script type="text/javascript" tal:condition="api.may('edit')">
+        jQuery.ajaxSetup({
+            url: '${ajax_url}',
+            cache: false,
+            timeout: 2000,
+        });
+      </script>
       <script src="${api.static_url}/editing.js" type="text/javascript"
               tal:condition="api.may('edit')"></script>
       <script src="${api.static_url}/photo.js" type="text/javascript"
@@ -13,7 +19,7 @@
   </head>
   <body>
     <div metal:fill-slot="container" id="doc3">
-      <table class="layout">
+      <table class="layout" border="1">
         <tr>
           <td class="left photo">
             <img src="${src}" width="${width}" height="${height}"/>
@@ -25,11 +31,11 @@
               <a href="${next_link|None}" tal:omit-tag="not next_link">next</a>
             </div>
             <br/>
-            <h1 class="field" id="photo_title">${title}</h1>
-            <div class="field" id="photo_location"><b>${location}</b></div>
-            <div class="field" id="photo_date">${date}</div>
+            <div class="field" id="title">${title}</div>
+            <div class="field" id="location">${location}</div>
+            <div class="field" id="date">${date}</div>
             <br/>
-            <p class="field" id="photo_desc">
+            <p class="field" id="desc">
               <tal:block replace="structure desc"/>
             </p>
             <br/>
