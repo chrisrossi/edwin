@@ -2,6 +2,7 @@ from __future__ import with_statement
 
 import datetime
 import os
+import pickle
 
 from edwin.models.photo import Photo
 
@@ -25,6 +26,11 @@ class _FSProperty(object):
             with open(fpath, 'w') as f:
                 f.write(self._from_python(value))
 
+class _PickleProperty(_FSProperty):
+    _to_python = lambda self, x: pickle.loads(x)
+    _from_python = lambda self, x: pickle.dumps(x)
+
+
 class _DateRangeFSProperty(_FSProperty):
     def _to_python(self, s):
         def to_date(date_s):
@@ -41,6 +47,7 @@ class Album(object):
     title = _FSProperty('title')
     desc = _FSProperty('desc')
     date_range = _DateRangeFSProperty('date_range')
+    _acl = _PickleProperty('_acl')
 
     def __init__(self, path):
         self.path = path
@@ -127,3 +134,12 @@ class Album(object):
 
         if earliest is not None:
             self.date_range = earliest, latest
+
+    def _get_acl(self):
+        return self._acl
+
+    def _set_acl(self, acl):
+        self._acl = acl
+
+    __acl__ = property(_get_acl, _set_acl)
+

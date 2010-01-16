@@ -3,6 +3,13 @@ from __future__ import with_statement
 from contextlib import contextmanager
 import datetime
 
+from happy.acl import ALL_PERMISSIONS
+from happy.acl import Allow
+from happy.acl import Deny
+from happy.acl import Everyone
+
+from happy.traversal import find_model
+
 from edwin.models.album import Album
 from edwin.models.photo import Photo
 
@@ -51,6 +58,13 @@ class Catalog(object):
     def scan(self, album=None):
         if album is None:
             album = Album(self.root_path)
+            if album._acl is None:
+                album._acl = [
+                (Allow, Everyone, 'view'),
+                (Allow, 'group.Administrators', ALL_PERMISSIONS),
+                (Deny, Everyone, ALL_PERMISSIONS),
+            ]
+
         with self._cursor() as c:
             for node in depthfirst(album):
                 if isinstance(node, Photo):
@@ -218,6 +232,10 @@ class Catalog(object):
         assert path.startswith(self.root_path), path
         return path[len(self.root_path):].strip('/')
 
+    def _find_model(self, path):
+        root = Album(self.root_path)
+        return find_model(root, path)
+
 class PhotoBrain(object):
     def __init__(self, catalog, id, path, modified, visibility, album_path,
                  timestamp):
@@ -230,7 +248,8 @@ class PhotoBrain(object):
         self.timestamp = timestamp
 
     def get(self):
-        return Photo(os.path.join(self.catalog.root_path, self.path))
+        #return Photo(os.path.join(self.catalog.root_path, self.path))
+        return self.catalog._find_model(self.path)
 
     def url(self, request):
         return '%s/%s' % (
@@ -252,7 +271,8 @@ class AlbumBrain(object):
         self.month = month
 
     def get(self):
-        return Album(os.path.join(self.catalog.root_path, self.path))
+        return self.catalog._find_model(self.path)
+        #return Album(os.path.join(self.catalog.root_path, self.path))
 
     def url(self, request):
         return '%s/%s' % (

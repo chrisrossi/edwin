@@ -23,11 +23,6 @@ class Application(object):
 
     def __init__(self, app_context):
         self.app_context = app_context
-        app_context.photos.__acl__ = [
-            (Allow, Everyone, 'view'),
-            (Allow, 'group.Administrators', ALL_PERMISSIONS),
-            (Deny, Everyone, ALL_PERMISSIONS),
-        ]
 
         # Set up skin
         static_version = str(int(time.time()))
@@ -111,11 +106,24 @@ def login_middleware(app, config_file=None):
         RandomUUIDCredentialBroker(credentials_file),
     )
 
+import time
+def timeit(app):
+    def middleware(request):
+        start = time.time()
+        response = app(request)
+        if response.content_type == 'text/html':
+            elapsed = time.time() - start
+            rps = 1.0 / elapsed
+            print "Requests Per Second: %0.2f\t%s" % (rps, request.path_info)
+        return response
+    return middleware
+
 def make_app(config_file=None):
     from edwin.config import read_config
     config = read_config(config_file)
     app = Application(ApplicationContext(config=config))
     app = login_middleware(app)
+    app = timeit(app)
     return wsgi_app(app)
 
 def main(args=sys.argv[1:]): #pragma NO COVERAGE, called from console
