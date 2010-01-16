@@ -1,7 +1,11 @@
 import Image
 import os
 
+from happy.acl import has_permission
 from happy.static import FileResponse
+
+from webob.exc import HTTPForbidden
+from webob.exc import HTTPUnauthorized
 
 class ImageApplication(object):
     def __init__(self, cache_dir):
@@ -9,12 +13,17 @@ class ImageApplication(object):
 
     def __call__(self, request):
         fname = request.path_info.rsplit('/', 1)[1]
+        catalog = request.app_context.catalog
+        id, dims, ext = fname.split('.')
+        photo = catalog.photo(id).get()
+        if not has_permission(request, 'view', photo):
+            if request.remote_user:
+                return HTTPForbidden()
+            return HTTPUnauthorized()
+
         cache_file = os.path.join(self.cache_dir, fname)
         if not os.path.exists(cache_file):
-            catalog = request.app_context.catalog
-            id, dims, ext = fname.split('.')
             req_size = tuple(map(int, dims.split('x')))
-            photo = catalog.photo(id).get()
             target_size = _target_size(req_size, photo.size)
             image = photo.image
             image.thumbnail(target_size, Image.ANTIALIAS)

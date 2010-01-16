@@ -1,9 +1,11 @@
+from happy.acl import require_permission
 from happy.traversal import model_url
 
 from edwin.views.api import TemplateAPI
 from edwin.views.util import format_date_range
 from edwin.views.util import format_month
 
+@require_permission('view')
 def month_view(request, year, month):
     app_context = request.app_context
     catalog = app_context.catalog

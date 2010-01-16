@@ -5,6 +5,7 @@
     <metal:slot fill-slot="page_headers" tal:omit-tag="">
       <link rel="stylesheet" href="${api.static_url}/photo.css"/>
       <script type="text/javascript" tal:condition="api.may('edit')">
+        var editable = ${str(api.may('edit')).lower()};
         jQuery.ajaxSetup({
             url: '${ajax_url}',
             cache: false,

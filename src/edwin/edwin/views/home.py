@@ -1,6 +1,8 @@
+from happy.acl import require_permission
 from edwin.views.api import TemplateAPI
 from edwin.views.util import format_date_range
 
+@require_permission('view')
 def homepage_view(request):
     catalog = request.app_context.catalog
     recent_albums = []

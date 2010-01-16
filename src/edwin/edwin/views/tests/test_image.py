@@ -22,6 +22,10 @@ class TestImageApplication(unittest.TestCase):
         photo = Photo(self.photo_file)
         photo.id = '123456'
 
+        from happy.acl import Allow
+        from happy.acl import Everyone
+        photo.__acl__ = [(Allow, Everyone, ['view']),]
+
         from edwin.views.image import ImageApplication
         app = ImageApplication(self.tmpdir)
 
@@ -40,6 +44,43 @@ class TestImageApplication(unittest.TestCase):
         import Image
         image = Image.open(cache_file)
         self.assertEqual(image.size, (300, 225))
+
+    def test_unauthorized(self):
+        from edwin.models.photo import Photo
+        photo = Photo(self.photo_file)
+        photo.id = '123456'
+
+        from happy.acl import Allow
+        from happy.acl import Everyone
+
+        from edwin.views.image import ImageApplication
+        app = ImageApplication(self.tmpdir)
+
+        import os
+        import webob
+        request = webob.Request.blank('/image/123456.300x300.jpg')
+        request.app_context = DummyAppContextCatalog(photo)
+        response = app(request)
+        self.assertEqual(response.status_int, 401)
+
+    def test_forbidden(self):
+        from edwin.models.photo import Photo
+        photo = Photo(self.photo_file)
+        photo.id = '123456'
+
+        from happy.acl import Allow
+        from happy.acl import Everyone
+
+        from edwin.views.image import ImageApplication
+        app = ImageApplication(self.tmpdir)
+
+        import os
+        import webob
+        request = webob.Request.blank('/image/123456.300x300.jpg')
+        request.app_context = DummyAppContextCatalog(photo)
+        request.remote_user = 'chris'
+        response = app(request)
+        self.assertEqual(response.status_int, 403)
 
     def test_dont_scale_up(self):
         from edwin.models.photo import Photo

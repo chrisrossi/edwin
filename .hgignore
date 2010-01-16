@@ -13,3 +13,4 @@ etc/edwin.ini
 etc/credentials.db
 etc/htpasswd
 etc/principals
+.noseids

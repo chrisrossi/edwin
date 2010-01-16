@@ -1,5 +1,6 @@
 from dateutil.parser import parse as dateparse
 
+from happy.acl import require_permission
 from happy.static import FileResponse
 from happy.traversal import model_url
 
@@ -9,6 +10,7 @@ from edwin.views.util import format_date
 
 PHOTO_SIZE = (700, 700)
 
+@require_permission('view')
 def photo_view(request, photo):
     app_context = request.app_context
     images_route = app_context.routes['images']
@@ -77,6 +79,7 @@ setters = {
     'date': date_setter,
 }
 
+@require_permission('edit')
 def edit_photo_view(request, photo):
     updated = {}
     for name, value in request.params.items():
@@ -86,6 +89,7 @@ def edit_photo_view(request, photo):
 
     return JSONResponse(updated)
 
+@require_permission('view')
 def download_photo_view(request, photo):
     response = FileResponse(photo.fpath)
     response.content_disposition = 'attachment; filename=%s' % photo.__name__

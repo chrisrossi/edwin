@@ -22,5 +22,7 @@ var fields = {
 };
 
 $(document).ready(function(){
-    decorate_fields(fields);
+    if (editable) {
+        decorate_fields(fields);
+    }
 });
