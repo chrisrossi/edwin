@@ -17,7 +17,10 @@ class ApplicationContext(object):
         # read config
         if config_file is None:
             config_file = get_default_config_file()
-        all_config = read_config(config_file)
+        if config_file is not None and os.path.exists(config_file):
+            all_config = read_config(config_file)
+        else:
+            all_config = {}
         if config is not None:
             all_config.update(config)
 

@@ -111,7 +111,7 @@ def timeit(app):
     def middleware(request):
         start = time.time()
         response = app(request)
-        if response.content_type == 'text/html':
+        if response is not None and response.content_type == 'text/html':
             elapsed = time.time() - start
             rps = 1.0 / elapsed
             print "Requests Per Second: %0.2f\t%s" % (rps, request.path_info)
@@ -120,7 +120,10 @@ def timeit(app):
 
 def make_app(config_file=None):
     from edwin.config import read_config
-    config = read_config(config_file)
+    if config_file is not None and os.path.exists(config_file):
+        config = read_config(config_file)
+    else:
+        config = {}
     app = Application(ApplicationContext(config=config))
     app = login_middleware(app)
     app = timeit(app)
@@ -137,3 +140,7 @@ def main(args=sys.argv[1:]): #pragma NO COVERAGE, called from console
     config = read_config(config_file)
     port = config.get('http_port', 8080)
     server_runner(app, {}, port=port)
+
+def profile():
+    import cProfile
+    cProfile.run("from edwin.application import main; main()")

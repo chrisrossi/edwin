@@ -42,6 +42,7 @@ setup(name='edwin',
               'scan=edwin.scripts.scan:main',
               'debug=edwin.scripts.debug:main',
               'serve=edwin.application:main',
+              'profile=edwin.application:profile',
               ]
           }
       )

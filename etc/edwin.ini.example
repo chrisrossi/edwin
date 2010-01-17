@@ -1,3 +1,6 @@
 [edwin]
+db_file = %(here)s/../var/photos.catalog
+photos_dir = %(here)s/../var/photos
+photos_cache = %(here)s/../var/cached_images
 
 [login]
