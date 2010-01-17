@@ -1,4 +1,5 @@
 from edwin.views.tests.twillbase import TwillTest
+import unittest
 
 class TestPhotoView(TwillTest):
     def test_it(self):
@@ -10,3 +11,116 @@ class TestPhotoView(TwillTest):
         b.find('November 04, 1975')
         b.follow('download')
         b.code(200)
+
+class TestEditPhotoView(unittest.TestCase):
+    def setUp(self):
+        from edwin.views.photo import edit_photo_view
+        self.fut = edit_photo_view
+
+        import os, sys
+        import tempfile
+        here = os.path.dirname(sys.modules[__name__].__file__)
+        tmpdir = self.tmpdir = tempfile.mkdtemp('_edwin_test')
+        src = os.path.join(here, 'test.jpg')
+        dst = os.path.join(tmpdir, 'test.jpg')
+        os.symlink(src, dst)
+
+        from edwin.models.album import Album
+        from happy.acl import Allow
+        from happy.acl import Everyone
+        album = Album(tmpdir)
+        album._acl = [(Allow, Everyone, ['view', 'edit']),]
+        self.photo = album['test.jpg']
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.tmpdir)
+
+    def test_set_title(self):
+        import simplejson
+        import webob
+        self.assertEqual(self.photo.title, None)
+        request = webob.Request.blank('/', POST={
+            'title': 'foo',
+            'bad_title': 'foo',
+        })
+        request.context = self.photo
+        response = self.fut(request, self.photo)
+        self.assertEqual(response.status_int, 200)
+        data = simplejson.loads(response.body)
+        self.assertEqual(data['title'], 'foo')
+        self.assertEqual(self.photo.title, 'foo')
+        self.failIf('bad_title' in data)
+
+    def test_set_location(self):
+        import simplejson
+        import webob
+        self.assertEqual(self.photo.location, None)
+        request = webob.Request.blank('/', POST={
+            'location': 'foo',
+        })
+        request.context = self.photo
+        response = self.fut(request, self.photo)
+        self.assertEqual(response.status_int, 200)
+        data = simplejson.loads(response.body)
+        self.assertEqual(data['location'], 'foo')
+        self.assertEqual(self.photo.location, 'foo')
+
+    def test_set_desc(self):
+        import simplejson
+        import webob
+        self.assertEqual(self.photo.desc, None)
+        request = webob.Request.blank('/', POST={
+            'desc': 'foo',
+        })
+        request.context = self.photo
+        response = self.fut(request, self.photo)
+        self.assertEqual(response.status_int, 200)
+        data = simplejson.loads(response.body)
+        self.assertEqual(data['desc'], 'foo')
+        self.assertEqual(self.photo.desc, 'foo')
+
+    def test_set_date(self):
+        import datetime
+        import simplejson
+        import webob
+        self.assertEqual(self.photo.date, datetime.date(2008, 12, 4))
+        request = webob.Request.blank('/', POST={
+            'date': '7/7/1975',
+        })
+        request.context = self.photo
+        response = self.fut(request, self.photo)
+        self.assertEqual(response.status_int, 200)
+        data = simplejson.loads(response.body)
+        self.assertEqual(data['date'], 'July 07, 1975')
+        self.assertEqual(self.photo.date, datetime.date(1975, 7, 7))
+
+    def test_set_blank_date(self):
+        import datetime
+        import simplejson
+        import webob
+        self.assertEqual(self.photo.date, datetime.date(2008, 12, 4))
+        request = webob.Request.blank('/', POST={
+            'date': '',
+        })
+        request.context = self.photo
+        response = self.fut(request, self.photo)
+        self.assertEqual(response.status_int, 200)
+        data = simplejson.loads(response.body)
+        self.assertEqual(data['date'], '')
+        self.assertEqual(self.photo.date, None)
+
+    def test_set_bad_date(self):
+        import datetime
+        import simplejson
+        import webob
+        self.assertEqual(self.photo.date, datetime.date(2008, 12, 4))
+        request = webob.Request.blank('/', POST={
+            'date': 'foo',
+        })
+        request.context = self.photo
+        response = self.fut(request, self.photo)
+        self.assertEqual(response.status_int, 200)
+        data = simplejson.loads(response.body)
+        self.assertEqual(data['date'], 'Bad date format.')
+        self.assertEqual(self.photo.date, datetime.date(2008, 12, 4))

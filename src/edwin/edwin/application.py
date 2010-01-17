@@ -120,10 +120,9 @@ def timeit(app):
 
 def make_app(config_file=None):
     from edwin.config import read_config
+    config = {}
     if config_file is not None and os.path.exists(config_file):
         config = read_config(config_file)
-    else:
-        config = {}
     app = Application(ApplicationContext(config=config))
     app = login_middleware(app)
     app = timeit(app)
@@ -141,6 +140,6 @@ def main(args=sys.argv[1:]): #pragma NO COVERAGE, called from console
     port = config.get('http_port', 8080)
     server_runner(app, {}, port=port)
 
-def profile():
+def profile(): #pragma NO COVERAGE
     import cProfile
     cProfile.run("from edwin.application import main; main()")

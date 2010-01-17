@@ -152,3 +152,15 @@ class TestAlbum(unittest.TestCase):
         album = self._make_one()
         self.assertEqual(album.date_range,
                          (date(2007, 1, 1), date(2008, 1, 1)))
+
+    def test_acl(self):
+        album = self._make_one()
+        self.assertEqual(album.__acl__, None)
+        acl = [('foo', 'bar', ['baz', 'night'])]
+        album._acl = acl
+        self.assertEqual(album.__acl__, acl)
+
+        album = self._make_one()
+        self.assertEqual(album.__acl__, acl)
+
+

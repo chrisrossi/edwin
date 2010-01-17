@@ -135,11 +135,7 @@ class Album(object):
         if earliest is not None:
             self.date_range = earliest, latest
 
-    def _get_acl(self):
+    @property
+    def __acl__(self):
         return self._acl
-
-    def _set_acl(self, acl):
-        self._acl = acl
-
-    __acl__ = property(_get_acl, _set_acl)
 
