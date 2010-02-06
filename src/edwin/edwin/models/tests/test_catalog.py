@@ -82,7 +82,6 @@ class TestCatalog(unittest.TestCase):
         brain = catalog.album('one')
         self.assertEqual(brain.path, 'one')
         self.assertEqual(brain.title, 'One')
-        self.assertEqual(brain.visibility, 'private')
         self.assertEqual(
             brain.date_range,
             (datetime.date(2007, 2, 16), datetime.date(2007, 2, 16))
@@ -98,7 +97,6 @@ class TestCatalog(unittest.TestCase):
         brain = catalog.album('one')
         self.assertEqual(brain.path, 'one')
         self.assertEqual(brain.title, 'One')
-        self.assertEqual(brain.visibility, 'private')
         self.assertEqual(brain.date_range, None)
         self.assertEqual(brain.get().desc, 'Test One')
 
@@ -114,32 +112,16 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(brain.id, photo.id)
         self.assertEqual(brain.path, 'one/test02.jpg')
         self.assertEqual(brain.modified, os.path.getmtime(photo.fpath))
-        self.assertEqual(brain.visibility, 'new')
         self.assertEqual(brain.album_path, 'one')
         self.assertEqual(brain.get().title, 'Test 02')
 
         brain = catalog.album('one')
         self.assertEqual(brain.path, 'one')
         self.assertEqual(brain.title, 'One')
-        self.assertEqual(brain.visibility, 'private')
         self.assertEqual(brain.date_range,
                          (datetime.date(2007, 2, 16),
                           datetime.date(2007, 2, 16))
                          )
-
-    def test_make_photo_visible(self):
-        self.test_index_photo()
-        catalog = self._make_one()
-        root = self._get_root()
-        photo = root['one']['test02.jpg']
-        photo.visibility = 'public'
-        catalog.index(photo)
-
-        brain = catalog.photo(photo.id)
-        self.assertEqual(brain.visibility, 'public')
-
-        brain = catalog.album('one')
-        self.assertEqual(brain.visibility, 'public')
 
     def test_albums(self):
         self._make_repository(jpgs=['test.jpg'])

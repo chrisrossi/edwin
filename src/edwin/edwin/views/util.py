@@ -1,11 +1,12 @@
 import datetime
+from happy.acl import effective_principals
 
-def get_months(request, visibility=None):
+def get_months(request):
     app_context = request.app_context
     routes = app_context.routes
     month_route = routes['month']
     months = []
-    for month in app_context.catalog.months(visibility):
+    for month in app_context.catalog.months(effective_principals(request)):
         y, m = month.split('-')
         label = format_month(int(y), int(m))
         url = month_route.url(

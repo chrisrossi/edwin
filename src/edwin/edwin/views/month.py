@@ -1,3 +1,4 @@
+from happy.acl import effective_principals
 from happy.acl import require_permission
 from happy.traversal import model_url
 
@@ -11,7 +12,8 @@ def month_view(request, year, month):
     catalog = app_context.catalog
     albums = []
     for album in catalog.albums(
-        month='%s-%s' % (year, month), visibility=None):
+        effective_principals(request),
+        month='%s-%s' % (year, month)):
         albums.append(dict(
             title=album.title,
             url=album.url(request),

@@ -1,3 +1,4 @@
+from happy.acl import effective_principals
 from happy.acl import require_permission
 from edwin.views.api import TemplateAPI
 from edwin.views.util import format_date_range
@@ -6,7 +7,7 @@ from edwin.views.util import format_date_range
 def homepage_view(request):
     catalog = request.app_context.catalog
     recent_albums = []
-    for album in catalog.albums(visibility=None, limit=10):
+    for album in catalog.albums(effective_principals(request), limit=10):
         recent_albums.append(dict(
             title=album.title,
             url=album.url(request),

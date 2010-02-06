@@ -1,6 +1,7 @@
 from dateutil.parser import parse as dateparse
 import simplejson
 
+from happy.acl import effective_principals
 from happy.acl import has_permission
 from happy.acl import require_permission
 from happy.static import FileResponse
@@ -21,7 +22,8 @@ def photo_view(request, photo):
     width, height = version['size']
 
     catalog = app_context.catalog
-    siblings = list(catalog.photos(photo.__parent__, visibility='public'))
+    siblings = list(catalog.photos(photo.__parent__,
+                                   effective_principals(request)))
     index = 0
     n_siblings = len(siblings)
     for i in xrange(n_siblings):
@@ -94,15 +96,17 @@ setters = {
     'date': date_setter,
 }
 
-def hide_photo(photo, request):
-    photo.visibility = 'private'
+def set_visibility(photo, request, visibility):
+    photo.visibility = visibility
+    photo.__parent__.update_acl()
     request.app_context.catalog.index(photo)
     return dict(visibility=photo.visibility)
 
+def hide_photo(photo, request):
+    return set_visibility(photo, request, 'private')
+
 def publish_photo(photo, request):
-    photo.visibility = 'public'
-    request.app_context.catalog.index(photo)
-    return dict(visibility=photo.visibility)
+    return set_visibility(photo, request, 'public')
 
 actions = {
     'hide': hide_photo,

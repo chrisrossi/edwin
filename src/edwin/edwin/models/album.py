@@ -4,6 +4,11 @@ import datetime
 import os
 import pickle
 
+from happy.acl import ALL_PERMISSIONS
+from happy.acl import Allow
+from happy.acl import Deny
+from happy.acl import Everyone
+
 from edwin.models.photo import Photo
 
 class _FSProperty(object):
@@ -144,7 +149,21 @@ class Album(object):
         if earliest is not None:
             return earliest, latest
 
-    @property
-    def __acl__(self):
-        return self._acl
+    def visibility(self):
+        visibilities = set([child.visibility for child in self.photos()])
+        if 'public' in visibilities:
+            return 'public'
+        elif 'new' in visibilities:
+            return 'new'
+        return 'private'
 
+    def update_acl(self):
+        if self.visibility() != 'public':
+            self._acl = [
+                (Allow, 'group.Administrators', ALL_PERMISSIONS),
+                (Deny, Everyone, ALL_PERMISSIONS)
+            ]
+        else:
+            self._acl = None
+
+    __acl__ = _acl

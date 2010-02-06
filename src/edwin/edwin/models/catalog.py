@@ -7,6 +7,7 @@ from happy.acl import ALL_PERMISSIONS
 from happy.acl import Allow
 from happy.acl import Deny
 from happy.acl import Everyone
+from happy.acl import principals_with_permission
 
 from happy.traversal import find_model
 
@@ -76,7 +77,7 @@ class Catalog(object):
     def album(self, path):
         with self._cursor() as c:
             c.execute(
-                "select path, title, visibility, start_date, end_date, month "
+                "select path, title, start_date, end_date, month "
                 "from albums where path=?", (path,)
             )
             row = c.fetchone()
@@ -87,7 +88,7 @@ class Catalog(object):
     def photo(self, id):
         with self._cursor() as c:
             c.execute(
-                "select path, modified, visibility, album_path, width, height,"
+                "select path, modified, album_path, width, height,"
                 "timestamp from photos where id=?", (id,)
             )
             row = c.fetchone()
@@ -96,18 +97,21 @@ class Catalog(object):
             return PhotoBrain(self, id, *row)
 
     def albums(self,
-               visibility=None,
+               user_principals=None,
                start_date=None,
                end_date=None,
                month=None,
                limit=None):
-        sql = ["select path, title, visibility, start_date, end_date, month "
+        sql = ["select path, title, start_date, end_date, month "
                "from albums",]
         args = []
         constraints = []
-        if visibility is not None:
-            constraints.append('visibility=?')
-            args.append(visibility)
+        if user_principals is not None:
+            subconstraints = []
+            for principal in user_principals:
+                subconstraints.append("allowed_viewers like ?")
+                args.append('%%|%s|%%' % principal)
+            constraints.append('(%s)' % ' or '.join(subconstraints))
         if start_date is not None:
             constraints.append('start_date >= ?')
             args.append(_serial_date(start_date))
@@ -149,14 +153,18 @@ class Catalog(object):
             for row in c:
                 yield AlbumBrain(self, *row)
 
-    def photos(self, album, visibility=None):
-        sql = ("select id, path, modified, visibility, album_path, width, "
+    def photos(self, album, user_principals=None):
+        sql = ("select id, path, modified, album_path, width, "
                "height, timestamp from photos where album_path=?")
         args = [self._relpath(album.path),]
 
-        if visibility is not None:
-            sql += " and visibility=?"
-            args.append(visibility)
+        if user_principals is not None:
+            constraints = []
+            for principal in user_principals:
+                constraints.append("allowed_viewers like ?")
+                args.append('%%|%s|%%' % principal)
+            sql += " and (%s)" % ' or '.join(constraints)
+
         sql += " order by timestamp asc, path asc"
 
         with self._cursor() as c:
@@ -164,17 +172,22 @@ class Catalog(object):
             for row in c:
                 yield PhotoBrain(self, *row)
 
-    def months(self, visibility=None):
+    def months(self, user_principals=None):
         with self._cursor() as c:
             sql = ['select distinct(month) from albums',]
             args = []
-            if visibility is not None:
-                sql.append('where visibility=?')
-                args.append(visibility)
+            if user_principals is not None:
+                constraints = []
+                for principal in user_principals:
+                    constraints.append("allowed_viewers like ?")
+                    args.append('%%|%s|%%' % principal)
+            sql.append("where (%s)" % ' or '.join(constraints))
+
             sql.append('order by month desc')
 
             sql = ' '.join(sql)
             if args:
+                print sql
                 c.execute(sql, args)
             else:
                 c.execute(sql)
@@ -192,10 +205,13 @@ class Catalog(object):
         # Add to catalog
         path = self._relpath(photo.fpath)
         album_path = os.path.dirname(path)
+        viewers = '|%s|' % '|'.join(
+            principals_with_permission('view', photo)
+        )
         c.execute(
-            "insert into photos (id, path, modified, visibility, "
+            "insert into photos (id, path, modified, allowed_viewers, "
             "album_path, width, height, timestamp) values(?,?,?,?,?,?,?,?)",
-            (photo.id, path, photo.modified, photo.visibility, album_path,
+            (photo.id, path, photo.modified, viewers, album_path,
              photo.size[0], photo.size[1], photo.timestamp)
         )
 
@@ -205,14 +221,13 @@ class Catalog(object):
         # Delete previous record
         c.execute("delete from albums where path=?", (album_path,))
 
-        # Calculate visibility
-        c.execute("select distinct(visibility) from photos where album_path=?",
+        # Aggregate viewers
+        viewers = set()
+        c.execute("select allowed_viewers from photos where album_path=?",
                   (album_path,))
-        visibilities = set([row[0] for row in c])
-        if 'public' in visibilities:
-            visibility = 'public'
-        else:
-            visibility = 'private'
+        for row in c:
+            viewers.update(set(filter(None, row[0].split('|'))))
+        viewers = '|%s|' % '|'.join(viewers)
 
         # Update record
         date_range = album.date_range
@@ -223,9 +238,9 @@ class Catalog(object):
         else:
             start_date = end_date = month = None
         c.execute(
-            "insert into albums (path, title, visibility, start_date, "
+            "insert into albums (path, title, allowed_viewers, start_date, "
             "end_date, month) values (?, ?, ?, ?, ?, ?)",
-            (album_path, album.title, visibility, start_date, end_date, month)
+            (album_path, album.title, viewers, start_date, end_date, month)
         )
 
     def _relpath(self, path):
@@ -237,13 +252,12 @@ class Catalog(object):
         return find_model(root, path)
 
 class PhotoBrain(object):
-    def __init__(self, catalog, id, path, modified, visibility, album_path,
+    def __init__(self, catalog, id, path, modified, album_path,
                  width, height, timestamp):
         self.catalog = catalog
         self.id = id
         self.path = path
         self.modified = modified
-        self.visibility = visibility
         self.album_path = album_path
         self.size = (width, height)
         self.timestamp = timestamp
@@ -259,12 +273,11 @@ class PhotoBrain(object):
         )
 
 class AlbumBrain(object):
-    def __init__(self, catalog, path, title, visibility, start_date, end_date,
+    def __init__(self, catalog, path, title, start_date, end_date,
                  month):
         self.catalog = catalog
         self.path = path
         self.title = title
-        self.visibility = visibility
         if start_date is not None:
             self.date_range = (_parse_date(start_date), _parse_date(end_date))
         else:
@@ -325,7 +338,7 @@ init_sql = [
     "    id text unique primary key,"
     "    path text,"
     "    modified real,"
-    "    visibility text,"
+    "    allowed_viewers text,"
     "    album_path text,"
     "    width int,"
     "    height int,"
@@ -336,7 +349,7 @@ init_sql = [
     "create table albums ("
     "    path text unique primary key,"
     "    title text,"
-    "    visibility text,"
+    "    allowed_viewers text,"
     "    start_date text,"
     "    end_date text,"
     "    month text)",

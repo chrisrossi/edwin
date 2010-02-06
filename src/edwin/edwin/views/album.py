@@ -1,3 +1,4 @@
+from happy.acl import effective_principals
 from happy.acl import require_permission
 from happy.traversal import model_url
 from edwin.views.api import TemplateAPI
@@ -12,7 +13,7 @@ def album_view(request, album):
     images = app_context.images
     images_route = app_context.routes['images']
     photos = []
-    for photo in catalog.photos(album, visibility='public'):
+    for photo in catalog.photos(album, effective_principals(request)):
         thumbnail = images.version(photo, THUMBNAIL_SIZE)
         photos.append(dict(
             url=photo.url(request),

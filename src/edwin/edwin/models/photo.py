@@ -1,3 +1,8 @@
+from happy.acl import ALL_PERMISSIONS
+from happy.acl import Allow
+from happy.acl import Deny
+from happy.acl import Everyone
+
 import copy
 import datetime
 from edwin.models.metadata import Metadata
@@ -112,6 +117,15 @@ class Photo(object):
         t = self.timestamp
         if t is not None:
             return datetime.date(t.year, t.month, t.day)
+
+    @property
+    def __acl__(self):
+        if self.visibility != 'public':
+            return [
+                (Allow, 'group.Administrators', ALL_PERMISSIONS),
+                (Deny, Everyone, ALL_PERMISSIONS),
+            ]
+        return [] # inherit
 
     def _evolve(self):
         if self.version != self.SW_VERSION:

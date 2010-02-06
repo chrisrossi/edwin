@@ -20,7 +20,7 @@ class TemplateAPI(object):
 
     @property
     def months(self):
-        return get_months(self._request, visibility=None)
+        return get_months(self._request)
 
     def may(self, permission):
         return has_permission(self._request, permission)
