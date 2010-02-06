@@ -60,6 +60,9 @@ class Album(object):
         if self.date_range is None:
             self.date_range = self._guess_date_range()
 
+        if self._acl is None:
+            self.update_acl()
+
     def __getitem__(self, fname):
         fpath = os.path.join(self.path, fname)
         if os.path.isfile(fpath):
@@ -158,12 +161,12 @@ class Album(object):
         return 'private'
 
     def update_acl(self):
-        if self.visibility() != 'public':
+        if self.has_photos() and self.visibility() != 'public':
             self._acl = [
                 (Allow, 'group.Administrators', ALL_PERMISSIONS),
                 (Deny, Everyone, ALL_PERMISSIONS)
             ]
         else:
-            self._acl = None
+            self._acl = []
 
     __acl__ = _acl
