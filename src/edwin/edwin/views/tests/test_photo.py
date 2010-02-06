@@ -171,6 +171,7 @@ def dummy_request(*args, **kw):
     import webob
     request = webob.Request.blank(*args, **kw)
     request.app_context = DummyApplicationContext()
+    request.authenticated_principals = ['group.Administrators']
     return request
 
 class DummyApplicationContext(object):

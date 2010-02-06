@@ -27,6 +27,14 @@ class TwillTest(unittest.TestCase):
         from edwin.models.album import Album
         from edwin.models.photo import Photo
         date = datetime.date(*self.start_date)
+
+        from happy.acl import Allow
+        from happy.acl import Everyone
+        os.makedirs(photos_dir)
+        Album(photos_dir)._acl = [
+            (Allow, Everyone, ['view'])
+        ]
+
         for i in xrange(self.n_albums):
             parts = map(str, (date.year, date.month, date.day))
             album_dir = os.path.join(photos_dir, *parts)
@@ -41,6 +49,7 @@ class TwillTest(unittest.TestCase):
                 photo.title = 'Test %d' % j
                 photo.visibility = self.initial_visibility
 
+            album.update_acl()
             date += datetime.timedelta(days=self.delta_days)
 
         etc = os.path.join(tmpdir, 'etc')

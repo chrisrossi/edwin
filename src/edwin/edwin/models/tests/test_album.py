@@ -155,7 +155,6 @@ class TestAlbum(unittest.TestCase):
 
     def test_acl(self):
         album = self._make_one()
-        self.assertEqual(album.__acl__, None)
         acl = [('foo', 'bar', ['baz', 'night'])]
         album._acl = acl
         self.assertEqual(album.__acl__, acl)

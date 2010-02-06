@@ -24,7 +24,6 @@ class TestImageApplication(unittest.TestCase):
 
         from happy.acl import Allow
         from happy.acl import Everyone
-        photo.__acl__ = [(Allow, Everyone, ['view']),]
 
         from edwin.views.image import ImageApplication
         app = ImageApplication(self.tmpdir)
@@ -38,6 +37,7 @@ class TestImageApplication(unittest.TestCase):
         cache_file = os.path.join(self.tmpdir, '123456.300x300.jpg')
         request = webob.Request.blank('/image/123456.300x300.jpg')
         request.app_context = DummyAppContextCatalog(photo)
+        request.authenticated_principals = ['group.Administrators']
         response = app(request)
         self.assertEqual(response.content_type, 'image/jpeg')
 

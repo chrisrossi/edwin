@@ -32,6 +32,12 @@ class TestCatalog(unittest.TestCase):
         test_jpgs = [os.path.join(here, jpg) for jpg in jpgs]
         n = len(test_jpgs)
 
+        from happy.acl import Allow
+        from happy.acl import Everyone
+        Album(self.root_path)._acl = [
+            (Allow, Everyone, 'view')
+        ]
+
         if date is not None:
             year, month, day = 2007, 2, 15
         for album_name in ['one', 'two']:
@@ -128,6 +134,7 @@ class TestCatalog(unittest.TestCase):
         root = self._get_root()
         photo = root['one']['test03.jpg']
         photo.visibility = 'public'
+        photo.__parent__.update_acl()
 
         catalog = self._make_one()
         catalog.scan()
@@ -137,13 +144,15 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(albums[0].title, 'Two')
         self.assertEqual(albums[1].title, 'One')
 
-        albums = list(catalog.albums('public'))
+        from happy.acl import Everyone
+        albums = list(catalog.albums([Everyone]))
         self.assertEqual(len(albums), 1)
         self.assertEqual(albums[0].title, 'One')
 
-        albums = list(catalog.albums('private'))
-        self.assertEqual(len(albums), 1)
+        albums = list(catalog.albums(['group.Administrators']))
+        self.assertEqual(len(albums), 2)
         self.assertEqual(albums[0].title, 'Two')
+        self.assertEqual(albums[1].title, 'One')
 
     def test_albums_by_date(self):
         import datetime
@@ -205,6 +214,7 @@ class TestCatalog(unittest.TestCase):
         photo.visibility = 'public'
         photo = root['one']['test02.jpg']
         photo.visibility = 'private'
+        root['one'].update_acl()
 
         catalog = self._make_one()
         catalog.scan()
@@ -215,20 +225,16 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(titles, ['Test 00', 'Test 01', 'Test 02', 'Test 03',
                                   'Test 04'])
 
-        photos = list(catalog.photos(root['one'], 'new'))
-        self.assertEqual(len(photos), 2)
-        titles = [p.get().title for p in photos]
-        self.assertEqual(titles, ['Test 00', 'Test 04'])
-
-        photos = list(catalog.photos(root['one'], 'public'))
+        from happy.acl import Everyone
+        photos = list(catalog.photos(root['one'], [Everyone]))
         self.assertEqual(len(photos), 2)
         titles = [p.get().title for p in photos]
         self.assertEqual(titles, ['Test 01', 'Test 03'])
 
-        photos = list(catalog.photos(root['one'], 'private'))
-        self.assertEqual(len(photos), 1)
+        photos = list(catalog.photos(root['one'], ['group.Administrators']))
+        self.assertEqual(len(photos), 3)
         titles = [p.get().title for p in photos]
-        self.assertEqual(titles, ['Test 02',])
+        self.assertEqual(titles, ['Test 00', 'Test 02', 'Test 04'])
 
     def test_months(self):
         from datetime import date
@@ -239,20 +245,26 @@ class TestCatalog(unittest.TestCase):
             date(2008, 3, 5)
         )
         root['one']['test02.jpg'].visibility = 'public'
+        root['one'].update_acl()
+
         catalog = self._make_one()
         catalog.scan()
+
         months = catalog.months()
         self.assertEqual(len(months), 2)
         self.assertEqual(months[0], '2008-03')
         self.assertEqual(months[1], '2007-02')
 
-        months = catalog.months('public')
+        from happy.acl import Everyone
+        months = catalog.months([Everyone])
         self.assertEqual(len(months), 1)
         self.assertEqual(months[0], '2007-02')
 
-        months = catalog.months('private')
-        self.assertEqual(len(months), 1)
+        months = catalog.months(['group.Administrators'])
+        self.assertEqual(len(months), 2)
         self.assertEqual(months[0], '2008-03')
+        self.assertEqual(months[1], '2007-02')
+
 
 class TestCursorContextFactory(unittest.TestCase):
     def test_good(self):
