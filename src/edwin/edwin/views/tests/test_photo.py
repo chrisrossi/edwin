@@ -149,6 +149,24 @@ class TestEditPhotoView(unittest.TestCase):
                           datetime.date(1975, 7, 10))
                          )
 
+    def test_hide_photo(self):
+        self.assertEqual(self.photo.visibility, 'new')
+        request = dummy_request('/', POST={
+            'action': 'hide',
+        })
+        request.context = self.photo
+        self.fut(request, self.photo)
+        self.assertEqual(self.photo.visibility, 'private')
+
+    def test_publish_photo(self):
+        self.assertEqual(self.photo.visibility, 'new')
+        request = dummy_request('/', POST={
+            'action': 'publish',
+        })
+        request.context = self.photo
+        self.fut(request, self.photo)
+        self.assertEqual(self.photo.visibility, 'public')
+
 def dummy_request(*args, **kw):
     import webob
     request = webob.Request.blank(*args, **kw)
