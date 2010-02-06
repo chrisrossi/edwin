@@ -106,7 +106,7 @@ class Catalog(object):
                "from albums",]
         args = []
         constraints = []
-        if user_principals is not None:
+        if user_principals is not None and user_principals:
             subconstraints = []
             for principal in user_principals:
                 subconstraints.append("allowed_viewers like ?")
@@ -181,13 +181,12 @@ class Catalog(object):
                 for principal in user_principals:
                     constraints.append("allowed_viewers like ?")
                     args.append('%%|%s|%%' % principal)
-            sql.append("where (%s)" % ' or '.join(constraints))
+                sql.append("where (%s)" % ' or '.join(constraints))
 
             sql.append('order by month desc')
 
             sql = ' '.join(sql)
             if args:
-                print sql
                 c.execute(sql, args)
             else:
                 c.execute(sql)
