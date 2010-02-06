@@ -110,7 +110,7 @@ class Album(object):
         cur = self.date_range
         new = self._guess_date_range()
 
-        if cur is None or new[0] < cur[0] or cur[1] > new[1]:
+        if cur is None or new[0] < cur[0] or new[1] > cur[1]:
             # Some piece of the new range sticks outside of the old range,
             # so update the range
             self.date_range = new

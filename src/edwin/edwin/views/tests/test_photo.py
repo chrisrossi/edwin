@@ -90,10 +90,6 @@ class TestEditPhotoView(unittest.TestCase):
         data = simplejson.loads(response.body)
         self.assertEqual(data['date'], 'July 07, 1975')
         self.assertEqual(self.photo.date, datetime.date(1975, 7, 7))
-        self.assertEqual(self.photo.__parent__.date_range,
-                         (datetime.date(1975, 7, 7),
-                          datetime.date(1975, 7, 7))
-                         )
 
     def test_set_blank_date(self):
         import datetime
@@ -122,6 +118,36 @@ class TestEditPhotoView(unittest.TestCase):
         data = simplejson.loads(response.body)
         self.assertEqual(data['date'], 'Bad date format.')
         self.assertEqual(self.photo.date, datetime.date(2008, 12, 4))
+
+    def test_date_updates_album_date_range(self):
+        import datetime
+        request = dummy_request('/', POST={
+            'date': '7/7/1975',
+        })
+        request.context = self.photo
+
+        album = self.photo.__parent__
+        self.fut(request, self.photo)
+        self.assertEqual(album.date_range,
+                         (datetime.date(1975, 7, 7),
+                          datetime.date(1975, 7, 7))
+                         )
+
+        album.date_range = (datetime.date(1975, 7, 1),
+                            datetime.date(1975, 7, 1))
+        self.fut(request, self.photo)
+        self.assertEqual(album.date_range,
+                         (datetime.date(1975, 7, 7),
+                          datetime.date(1975, 7, 7))
+                         )
+
+        album.date_range = (datetime.date(1975, 7, 1),
+                            datetime.date(1975, 7, 10))
+        self.fut(request, self.photo)
+        self.assertEqual(album.date_range,
+                         (datetime.date(1975, 7, 1),
+                          datetime.date(1975, 7, 10))
+                         )
 
 def dummy_request(*args, **kw):
     import webob
