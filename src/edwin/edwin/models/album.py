@@ -53,7 +53,7 @@ class Album(object):
         self.path = path
 
         if self.date_range is None:
-            self._guess_date_range()
+            self.date_range = self._guess_date_range()
 
     def __getitem__(self, fname):
         fpath = os.path.join(self.path, fname)
@@ -106,6 +106,15 @@ class Album(object):
         for fname in self.photo_names():
             yield self.__getitem__(fname)
 
+    def update_date_range(self):
+        cur = self.date_range
+        new = self._guess_date_range()
+
+        if cur is None or new[0] < cur[0] or cur[1] > new[1]:
+            # Some piece of the new range sticks outside of the old range,
+            # so update the range
+            self.date_range = new
+
     def _guess_date_range(self):
         earliest = latest = None
         for item in self.values():
@@ -133,7 +142,7 @@ class Album(object):
                         latest = end
 
         if earliest is not None:
-            self.date_range = earliest, latest
+            return earliest, latest
 
     @property
     def __acl__(self):

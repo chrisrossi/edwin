@@ -87,6 +87,13 @@ def edit_photo_view(request, photo):
             continue
         updated[name] = setters[name](photo, name, value)
 
+    if 'date' in updated:
+        album = photo.__parent__
+        album.update_date_range()
+
+    if updated:
+        request.app_context.catalog.index(photo)
+
     return JSONResponse(updated)
 
 @require_permission('view')

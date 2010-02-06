@@ -38,9 +38,8 @@ class TestEditPhotoView(unittest.TestCase):
 
     def test_set_title(self):
         import simplejson
-        import webob
         self.assertEqual(self.photo.title, None)
-        request = webob.Request.blank('/', POST={
+        request = dummy_request('/', POST={
             'title': 'foo',
             'bad_title': 'foo',
         })
@@ -54,9 +53,8 @@ class TestEditPhotoView(unittest.TestCase):
 
     def test_set_location(self):
         import simplejson
-        import webob
         self.assertEqual(self.photo.location, None)
-        request = webob.Request.blank('/', POST={
+        request = dummy_request('/', POST={
             'location': 'foo',
         })
         request.context = self.photo
@@ -68,9 +66,8 @@ class TestEditPhotoView(unittest.TestCase):
 
     def test_set_desc(self):
         import simplejson
-        import webob
         self.assertEqual(self.photo.desc, None)
-        request = webob.Request.blank('/', POST={
+        request = dummy_request('/', POST={
             'desc': 'foo',
         })
         request.context = self.photo
@@ -83,9 +80,8 @@ class TestEditPhotoView(unittest.TestCase):
     def test_set_date(self):
         import datetime
         import simplejson
-        import webob
         self.assertEqual(self.photo.date, datetime.date(2008, 12, 4))
-        request = webob.Request.blank('/', POST={
+        request = dummy_request('/', POST={
             'date': '7/7/1975',
         })
         request.context = self.photo
@@ -94,13 +90,16 @@ class TestEditPhotoView(unittest.TestCase):
         data = simplejson.loads(response.body)
         self.assertEqual(data['date'], 'July 07, 1975')
         self.assertEqual(self.photo.date, datetime.date(1975, 7, 7))
+        self.assertEqual(self.photo.__parent__.date_range,
+                         (datetime.date(1975, 7, 7),
+                          datetime.date(1975, 7, 7))
+                         )
 
     def test_set_blank_date(self):
         import datetime
         import simplejson
-        import webob
         self.assertEqual(self.photo.date, datetime.date(2008, 12, 4))
-        request = webob.Request.blank('/', POST={
+        request = dummy_request('/', POST={
             'date': '',
         })
         request.context = self.photo
@@ -113,9 +112,8 @@ class TestEditPhotoView(unittest.TestCase):
     def test_set_bad_date(self):
         import datetime
         import simplejson
-        import webob
         self.assertEqual(self.photo.date, datetime.date(2008, 12, 4))
-        request = webob.Request.blank('/', POST={
+        request = dummy_request('/', POST={
             'date': 'foo',
         })
         request.context = self.photo
@@ -124,3 +122,20 @@ class TestEditPhotoView(unittest.TestCase):
         data = simplejson.loads(response.body)
         self.assertEqual(data['date'], 'Bad date format.')
         self.assertEqual(self.photo.date, datetime.date(2008, 12, 4))
+
+def dummy_request(*args, **kw):
+    import webob
+    request = webob.Request.blank(*args, **kw)
+    request.app_context = DummyApplicationContext()
+    return request
+
+class DummyApplicationContext(object):
+    def __init__(self):
+        self.catalog = DummyCatalog()
+
+class DummyCatalog(object):
+    def __init__(self):
+        self.indexed = []
+
+    def index(self, obj):
+        self.indexed.append(obj)

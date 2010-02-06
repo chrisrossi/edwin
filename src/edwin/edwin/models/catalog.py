@@ -49,7 +49,7 @@ class Catalog(object):
                 self._index_photo(obj, c)
 
                 # Reindex album while we're at it, since changes in photo
-                # visibility impact albu visibility.
+                # visibility impact album visibility.
                 self._index_album(Album(os.path.dirname(obj.fpath)), c)
 
             elif isinstance(obj, Album):
