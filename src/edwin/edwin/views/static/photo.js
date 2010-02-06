@@ -24,5 +24,6 @@ var fields = {
 $(document).ready(function(){
     if (editable) {
         decorate_fields(fields);
+        show_actions();
     }
 });

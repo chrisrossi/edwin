@@ -1,5 +1,10 @@
 function ajax_success(data) {
     for (name in data) {
+        if (name == 'actions') {
+            actions = data[name];
+            show_actions();
+            continue;
+        }
         var element = $('.field#' + name);
         element.removeClass('empty_field').html(data[name]);
         decorate_field(element);
@@ -73,6 +78,11 @@ function decorate_fields(fields) {
 }
 
 function decorate_field(field) {
+    var id = field.attr('id');
+    if (!(id in fields)) {
+        return;
+    }
+
     field.hover(
         // Show outline when hovering
         function() {
@@ -91,8 +101,30 @@ function decorate_field(field) {
     // Make sure empty fields are visible
     empty = ! field.html().trim();
     field.data('empty', empty);
-    var metadata = fields[field.attr('id')];
+    var metadata = fields[id];
     if (empty) {
         field.addClass('empty_field').html(metadata['label']);
+    }
+}
+
+function do_action(name) {
+    jQuery.ajax({
+        success: ajax_success,
+        data: {action: name},
+        dataType: 'json'
+    });
+}
+
+function show_actions() {
+    var div = $('#actions').html('');
+    for (var i in actions) {
+        var action = actions[i];
+        $('<a href="#"/>')
+            .text(action['title'])
+            .addClass('action')
+            .click(function(){
+                do_action(action['name']);
+            })
+            .appendTo(div);
     }
 }

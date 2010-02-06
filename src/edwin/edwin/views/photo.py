@@ -1,5 +1,7 @@
 from dateutil.parser import parse as dateparse
+import simplejson
 
+from happy.acl import has_permission
 from happy.acl import require_permission
 from happy.static import FileResponse
 from happy.traversal import model_url
@@ -29,10 +31,10 @@ def photo_view(request, photo):
 
     app_url = request.application_url.rstrip('/')
     prev_link = next_link = None
-    if i > 0:
-        prev_link = siblings[i-1].url(request)
-    if i < n_siblings -1:
-        next_link = siblings[i+1].url(request)
+    if index > 0:
+        prev_link = siblings[index-1].url(request)
+    if index < n_siblings -1:
+        next_link = siblings[index+1].url(request)
     back_link = model_url(request, photo.__parent__)
 
     ajax_url = model_url(request, photo, 'edit.json')
@@ -44,6 +46,7 @@ def photo_view(request, photo):
         location=photo.location,
         date=format_date(photo.date),
         desc=photo.desc,
+        visibility=photo.visibility,
         src=src,
         width=width,
         height=height,
@@ -52,7 +55,19 @@ def photo_view(request, photo):
         back_link=back_link,
         download_link=model_url(request, photo, 'dl'),
         ajax_url=ajax_url,
+        actions=simplejson.dumps(get_actions(photo, request)),
     )
+
+def get_actions(photo, request):
+    if not has_permission(request, 'edit', photo):
+        return []
+
+    actions = []
+    if photo.visibility != 'public':
+        actions.append(dict(name='publish', title='publish photo'))
+    if photo.visibility != 'private':
+        actions.append(dict(name='hide', title='hide photo'))
+    return actions
 
 def default_setter(photo, name, value):
     setattr(photo, name, value)
@@ -79,8 +94,30 @@ setters = {
     'date': date_setter,
 }
 
+def hide_photo(photo, request):
+    photo.visibility = 'private'
+    request.app_context.catalog.index(photo)
+    return dict(visibility=photo.visibility)
+
+def publish_photo(photo, request):
+    photo.visibility = 'public'
+    request.app_context.catalog.index(photo)
+    return dict(visibility=photo.visibility)
+
+actions = {
+    'hide': hide_photo,
+    'publish': publish_photo,
+}
+
 @require_permission('edit')
 def edit_photo_view(request, photo):
+    if 'action' in request.params:
+        action = actions.get(request.params['action'], None)
+        if action is not None:
+            updated = action(photo, request)
+            updated['actions'] = get_actions(photo, request)
+            return JSONResponse(updated)
+
     updated = {}
     for name, value in request.params.items():
         if name not in setters:

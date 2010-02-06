@@ -6,6 +6,7 @@
       <link rel="stylesheet" href="${api.static_url}/photo.css"/>
       <script type="text/javascript" tal:condition="api.may('edit')">
         var editable = ${str(api.may('edit')).lower()};
+        var actions = ${actions};
         jQuery.ajaxSetup({
             url: '${ajax_url}',
             cache: false,
@@ -35,6 +36,8 @@
             <div class="field" id="title">${title}</div>
             <div class="field" id="location">${location}</div>
             <div class="field" id="date">${date}</div>
+            <div class="field" id="visibility"
+                 tal:condition="api.may('edit')">${visibility}</div>
             <br/>
             <p class="field" id="desc">
               <tal:block replace="structure desc"/>
@@ -44,6 +47,7 @@
               download original
             </a>
             <br/>
+            <div id="actions"></div>
             <a class="back_link" href="${back_link}">back</a>
           </td>
         </tr>

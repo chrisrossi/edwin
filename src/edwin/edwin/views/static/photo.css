@@ -40,3 +40,18 @@
 input.field {
     width: 100%;
 }
+
+#visibility {
+    font-size: 93%;
+    color: darkgray;
+}
+
+#actions {
+    margin-top: 0.4em;
+    margin-bottom: 0.4em;
+}
+
+.action {
+    font-size: 93%;
+    right-margin: 0.2em;
+}
