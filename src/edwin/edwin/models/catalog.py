@@ -87,8 +87,8 @@ class Catalog(object):
     def photo(self, id):
         with self._cursor() as c:
             c.execute(
-                "select path, modified, visibility, album_path, timestamp "
-                "from photos where id=?", (id,)
+                "select path, modified, visibility, album_path, width, height,"
+                "timestamp from photos where id=?", (id,)
             )
             row = c.fetchone()
             if not row:
@@ -150,8 +150,8 @@ class Catalog(object):
                 yield AlbumBrain(self, *row)
 
     def photos(self, album, visibility=None):
-        sql = ("select id, path, modified, visibility, album_path, timestamp "
-               "from photos where album_path=?")
+        sql = ("select id, path, modified, visibility, album_path, width, "
+               "height, timestamp from photos where album_path=?")
         args = [self._relpath(album.path),]
 
         if visibility is not None:
@@ -194,9 +194,9 @@ class Catalog(object):
         album_path = os.path.dirname(path)
         c.execute(
             "insert into photos (id, path, modified, visibility, "
-            "album_path, timestamp) values(?,?,?,?,?,?)",
+            "album_path, width, height, timestamp) values(?,?,?,?,?,?,?,?)",
             (photo.id, path, photo.modified, photo.visibility, album_path,
-             photo.timestamp)
+             photo.size[0], photo.size[1], photo.timestamp)
         )
 
     def _index_album(self, album, c):
@@ -238,13 +238,14 @@ class Catalog(object):
 
 class PhotoBrain(object):
     def __init__(self, catalog, id, path, modified, visibility, album_path,
-                 timestamp):
+                 width, height, timestamp):
         self.catalog = catalog
         self.id = id
         self.path = path
         self.modified = modified
         self.visibility = visibility
         self.album_path = album_path
+        self.size = (width, height)
         self.timestamp = timestamp
 
     def get(self):
@@ -326,6 +327,8 @@ init_sql = [
     "    modified real,"
     "    visibility text,"
     "    album_path text,"
+    "    width int,"
+    "    height int,"
     "    timestamp)",
 
     "create index photos_by_album_path on photos (album_path)",

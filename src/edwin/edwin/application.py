@@ -130,15 +130,25 @@ def make_app(config_file=None):
 
 def main(args=sys.argv[1:]): #pragma NO COVERAGE, called from console
     from edwin.config import read_config
+    profile = False
+    if '--profile' in args:
+        profile = True
+        args.remove('--profile')
+
     config_file = None
     if args:
         config_file = args[0]
     app = make_app(config_file)
 
-    from paste.httpserver import server_runner
+    from paste.httpserver import serve
     config = read_config(config_file)
     port = config.get('http_port', 8080)
-    server_runner(app, {}, port=port)
+
+    if profile:
+        import cProfile
+        cProfile.runctx('serve(app, port=port)', globals(), locals())
+    else:
+        serve(app, port=port)
 
 def profile(): #pragma NO COVERAGE
     import cProfile

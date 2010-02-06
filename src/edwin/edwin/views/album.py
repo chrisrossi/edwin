@@ -13,7 +13,7 @@ def album_view(request, album):
     images_route = app_context.routes['images']
     photos = []
     for photo in catalog.photos(album, visibility='public'):
-        thumbnail = images.version(photo.get(), THUMBNAIL_SIZE)
+        thumbnail = images.version(photo, THUMBNAIL_SIZE)
         photos.append(dict(
             url=photo.url(request),
             thumb=thumbnail,
