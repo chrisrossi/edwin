@@ -120,6 +120,7 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(brain.modified, os.path.getmtime(photo.fpath))
         self.assertEqual(brain.album_path, 'one')
         self.assertEqual(brain.get().title, 'Test 02')
+        self.assertEqual(brain.size, (3072, 2304))
 
         brain = catalog.album('one')
         self.assertEqual(brain.path, 'one')
@@ -128,6 +129,11 @@ class TestCatalog(unittest.TestCase):
                          (datetime.date(2007, 2, 16),
                           datetime.date(2007, 2, 16))
                          )
+
+        photo.rotate(90)
+        catalog.index(photo)
+        brain = catalog.photo(photo.id)
+        self.assertEqual(brain.size, (2304, 3072))
 
     def test_albums(self):
         self._make_repository(jpgs=['test.jpg'])
