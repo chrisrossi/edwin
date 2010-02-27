@@ -84,6 +84,7 @@ class Photo(object):
     date = _DateMetadataProperty('date')
     tags = _MetadataProperty('tags', default=[])
     size = _MetadataProperty('size')
+    _rotation = _MetadataProperty('rotation', 0)
 
     def __init__(self, fpath):
         self.fpath = fpath
@@ -98,13 +99,44 @@ class Photo(object):
 
         self._evolve()
 
+    def _transformed_path(self):
+        return '%s.transformed.jpg' % self.fpath
+
     @property
     def modified(self):
         return os.path.getmtime(self.fpath)
 
     @property
     def image(self):
-        return Image.open(self.fpath)
+        transformed_path = self._transformed_path()
+        if os.path.exists(transformed_path):
+            return Image.open(transformed_path)
+
+        # Do non-destructive transformations (preserve original file)
+        image = Image.open(self.fpath)
+        transformed = False
+
+        rotation = self._rotation
+        if rotation != 0:
+            image = image.rotate(rotation)
+            transformed = True
+
+        if transformed:
+            image.save(transformed_path)
+
+        return image
+
+    def rotate(self, angle):
+        # Set angle of rotation
+        self._rotation = angle % 360
+
+        # Force transformations to be reapplied
+        transformed_path = self._transformed_path()
+        if os.path.exists(transformed_path):
+            os.remove(transformed_path)
+
+        # Get new size from transformed image
+        self.size = self.image.size
 
     def _guess_date(self):
         # First see if date is contained in folder structure

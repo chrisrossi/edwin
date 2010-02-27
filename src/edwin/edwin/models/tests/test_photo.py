@@ -150,3 +150,17 @@ class TestPhoto(unittest.TestCase):
         from edwin.models.photo import Photo
         p = Photo(self.fname)
         self.assertEqual(p.image.size, (3072, 2304))
+
+    def test_rotate(self):
+        from edwin.models.photo import Photo
+        p = Photo(self.fname)
+        self.assertEqual(p.size, (3072, 2304))
+
+        p.rotate(90)
+        self.assertEqual(p.size, (2304, 3072))
+        self.assertEqual(p.image.size, (2304, 3072))
+
+        p.rotate(360)
+        self.assertEqual(p._rotation, 0)
+        self.assertEqual(p.size, (3072, 2304))
+        self.assertEqual(p.image.size, (3072, 2304))
