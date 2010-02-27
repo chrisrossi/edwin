@@ -59,12 +59,6 @@ class Catalog(object):
     def scan(self, album=None):
         if album is None:
             album = Album(self.root_path)
-            if album._acl is None:
-                album._acl = [
-                (Allow, Everyone, 'view'),
-                (Allow, 'group.Administrators', ALL_PERMISSIONS),
-                (Deny, Everyone, ALL_PERMISSIONS),
-            ]
 
         with self._cursor() as c:
             for node in depthfirst(album):
