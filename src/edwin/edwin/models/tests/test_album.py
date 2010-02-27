@@ -139,6 +139,11 @@ class TestAlbum(unittest.TestCase):
         self.assertEqual(album.date_range,
                          (date(2007, 8, 8), date(2008, 7, 7)))
 
+        photo = album['test02.jpg']
+        photo.date = date(2007, 7, 7)
+        self.assertEqual(album._guess_date_range(),
+                         (date(2007, 7, 7), date(2007, 9, 9)))
+
     def test_guess_date_range_folders(self):
         from datetime import date
         album = self._make_one()
