@@ -122,6 +122,7 @@ def rotate(photo, request, angle):
     )
     width, height = version['size']
     app_context.images.clear_cache(photo)
+    app_context.catalog.index(photo)
 
     return dict(width=width, height=height, image_src=src)
 

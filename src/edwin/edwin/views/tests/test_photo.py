@@ -167,6 +167,42 @@ class TestEditPhotoView(unittest.TestCase):
         self.fut(request, self.photo)
         self.assertEqual(self.photo.visibility, 'public')
 
+    def test_rotate_left(self):
+        import json
+        self.assertEqual(self.photo.size, (3072, 2304))
+        request = dummy_request('/', POST={
+            'action': 'left',
+        })
+        request.context = self.photo
+        response = self.fut(request, self.photo)
+        data = json.loads(response.body)
+        self.assertEqual(self.photo.size, (2304, 3072))
+        self.assertEqual(data['width'], 200)
+        self.assertEqual(data['height'], 300)
+        self.assertEqual(data['image_src'],
+                         'http://example.com/images/test.700x700.jpg')
+        self.assertEqual(request.app_context.catalog.indexed, [self.photo,])
+        self.assertEqual(request.app_context.images.cleared_cache,
+                         [self.photo,])
+
+    def test_rotate_right(self):
+        import json
+        self.assertEqual(self.photo.size, (3072, 2304))
+        request = dummy_request('/', POST={
+            'action': 'right',
+        })
+        request.context = self.photo
+        response = self.fut(request, self.photo)
+        data = json.loads(response.body)
+        self.assertEqual(self.photo.size, (2304, 3072))
+        self.assertEqual(data['width'], 200)
+        self.assertEqual(data['height'], 300)
+        self.assertEqual(data['image_src'],
+                         'http://example.com/images/test.700x700.jpg')
+        self.assertEqual(request.app_context.catalog.indexed, [self.photo,])
+        self.assertEqual(request.app_context.images.cleared_cache,
+                         [self.photo,])
+
 def dummy_request(*args, **kw):
     import webob
     request = webob.Request.blank(*args, **kw)
@@ -177,6 +213,28 @@ def dummy_request(*args, **kw):
 class DummyApplicationContext(object):
     def __init__(self):
         self.catalog = DummyCatalog()
+        self.routes = DummyRoutes()
+        self.images = DummyImageApplication()
+
+class DummyRoutes(object):
+    def __getitem__(self, name):
+        return self
+
+    def url(self, request, fname, subpath):
+        return 'http://example.com/images/%s' % fname
+
+class DummyImageApplication(object):
+    def __init__(self):
+        self.cleared_cache = []
+
+    def version(self, photo, req_size):
+        return {
+            'fname': 'test.%dx%d.jpg' % req_size,
+            'size': (200, 300)
+        }
+
+    def clear_cache(self, photo=None):
+        self.cleared_cache.append(photo)
 
 class DummyCatalog(object):
     def __init__(self):

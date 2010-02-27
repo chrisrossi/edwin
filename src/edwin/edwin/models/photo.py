@@ -32,6 +32,10 @@ class _MetadataProperty(object):
         else:
             photo._metadata[self.name] = self._serial(value)
 
+class _TupleMetadataProperty(_MetadataProperty):
+    def _deserial(self, l):
+        return tuple(l)
+
 class _DateMetadataProperty(_MetadataProperty):
     def _serial(self, value):
         if value is not None:
@@ -83,7 +87,7 @@ class Photo(object):
     timestamp = _TimestampExifProperty(0x9003)
     date = _DateMetadataProperty('date')
     tags = _MetadataProperty('tags', default=[])
-    size = _MetadataProperty('size')
+    size = _TupleMetadataProperty('size')
     _rotation = _MetadataProperty('rotation', 0)
 
     def __init__(self, fpath):
