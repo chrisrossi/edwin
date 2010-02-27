@@ -1,4 +1,20 @@
 function ajax_success(data) {
+    if ('image_src' in data) {
+        // Reload transformed image
+        var src = data['image_src'];
+        var width = data['width'];
+        var height = data['height'];
+        var img = $('.photo img').get(0);
+
+        img.width = width;
+        img.height = height;
+        img.src = src;
+
+        delete data['image_src'];
+        delete data['width'];
+        delete data['height'];
+    }
+
     for (name in data) {
         if (name == 'actions') {
             actions = data[name];
@@ -121,10 +137,12 @@ function show_actions() {
         var action = actions[i];
         $('<a href="#"/>')
             .text(action['title'])
+            .attr('action', action['name'])
             .addClass('action')
-            .click(function(){
-                do_action(action['name']);
+            .click(function() {
+               do_action($(this).attr('action'));
             })
-            .appendTo(div);
+            .appendTo(div)
+            .wrap('<nobr/>');
     }
 }

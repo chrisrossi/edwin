@@ -10,7 +10,7 @@ def get_months(request):
         y, m = month.split('-')
         label = format_month(int(y), int(m))
         url = month_route.url(
-            request, dict(year=y, month=m)
+            request, year=y, month=m
         )
         months.append(dict(label=label, url=url))
     return months

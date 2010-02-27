@@ -47,7 +47,7 @@ class Application(object):
         routes = RoutesDispatcher()
         routes.register(homepage_view, 'homepage', '/')
         routes.register(month_view, 'month', '/archive/:year/:month/')
-        routes.register(images, 'images', '/image/*')
+        routes.register(images, 'images', '/image/:fname/*')
 
         # Use traversal for albums and photos
         from edwin.models.album import Album

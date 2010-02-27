@@ -18,14 +18,14 @@ def album_view(request, album):
         photos.append(dict(
             url=photo.url(request),
             thumb=thumbnail,
-            src=images_route.url(request, subpath=[thumbnail['fname'],]),
+            src=images_route.url(request, fname=thumbnail['fname']),
             )
         )
 
     months_route = app_context.routes['month']
     date = album.date_range[0]
     back_link = months_route.url(
-        request, dict(year=str(date.year), month='%02d' % date.month)
+        request, year=str(date.year), month='%02d' % date.month
     )
 
     return app_context.templates.render_to_response(

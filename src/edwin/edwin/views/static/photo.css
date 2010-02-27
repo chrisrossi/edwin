@@ -52,6 +52,9 @@ input.field {
 }
 
 .action {
-    font-size: 93%;
-    right-margin: 0.2em;
+    font-size: 77%;
+    margin-right: 0.4em;
+    background-color: #202030;
+    border: 1px solid #303060;
+    padding: 2px;
 }

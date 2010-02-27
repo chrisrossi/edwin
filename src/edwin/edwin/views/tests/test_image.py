@@ -12,7 +12,6 @@ class TestImageApplication(unittest.TestCase):
         self.photo_file = os.path.join(self.tmpdir, 'test.jpg')
         os.symlink(test_jpg, self.photo_file)
 
-
     def tearDown(self):
         import shutil
         shutil.rmtree(self.tmpdir)
@@ -38,7 +37,7 @@ class TestImageApplication(unittest.TestCase):
         request = webob.Request.blank('/image/123456.300x300.jpg')
         request.app_context = DummyAppContextCatalog(photo)
         request.authenticated_principals = ['group.Administrators']
-        response = app(request)
+        response = app(request, version['fname'])
         self.assertEqual(response.content_type, 'image/jpeg')
 
         import Image
@@ -60,7 +59,7 @@ class TestImageApplication(unittest.TestCase):
         import webob
         request = webob.Request.blank('/image/123456.300x300.jpg')
         request.app_context = DummyAppContextCatalog(photo)
-        response = app(request)
+        response = app(request, '123456.300x300.jpg')
         self.assertEqual(response.status_int, 401)
 
     def test_forbidden(self):
@@ -79,7 +78,7 @@ class TestImageApplication(unittest.TestCase):
         request = webob.Request.blank('/image/123456.300x300.jpg')
         request.app_context = DummyAppContextCatalog(photo)
         request.remote_user = 'chris'
-        response = app(request)
+        response = app(request, '123456.300x300.jpg')
         self.assertEqual(response.status_int, 403)
 
     def test_dont_scale_up(self):

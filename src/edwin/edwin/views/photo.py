@@ -1,5 +1,6 @@
 from dateutil.parser import parse as dateparse
 import simplejson
+import time
 
 from happy.acl import effective_principals
 from happy.acl import has_permission
@@ -18,7 +19,7 @@ def photo_view(request, photo):
     app_context = request.app_context
     images_route = app_context.routes['images']
     version = app_context.images.version(photo, PHOTO_SIZE)
-    src = images_route.url(request, subpath=[version['fname'],])
+    src = images_route.url(request, fname=version['fname'])
     width, height = version['size']
 
     catalog = app_context.catalog
@@ -69,6 +70,8 @@ def get_actions(photo, request):
         actions.append(dict(name='publish', title='publish photo'))
     if photo.visibility != 'private':
         actions.append(dict(name='hide', title='hide photo'))
+    actions.append(dict(name='left', title='rotate left'))
+    actions.append(dict(name='right', title='rotate right'))
     return actions
 
 def default_setter(photo, name, value):
@@ -108,9 +111,31 @@ def hide_photo(photo, request):
 def publish_photo(photo, request):
     return set_visibility(photo, request, 'public')
 
+def rotate(photo, request, angle):
+    photo.rotate(angle)
+
+    app_context = request.app_context
+    images_route = app_context.routes['images']
+    version = app_context.images.version(photo, PHOTO_SIZE)
+    src = images_route.url(
+        request, fname=version['fname'], subpath=[str(time.time()),]
+    )
+    width, height = version['size']
+    app_context.images.clear_cache(photo)
+
+    return dict(width=width, height=height, image_src=src)
+
+def rotate_left(photo, request):
+    return rotate(photo, request, 90)
+
+def rotate_right(photo, request):
+    return rotate(photo, request, 270)
+
 actions = {
     'hide': hide_photo,
     'publish': publish_photo,
+    'left': rotate_left,
+    'right': rotate_right,
 }
 
 @require_permission('edit')

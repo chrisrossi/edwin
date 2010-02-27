@@ -11,8 +11,7 @@ class ImageApplication(object):
     def __init__(self, cache_dir):
         self.cache_dir = cache_dir
 
-    def __call__(self, request):
-        fname = request.path_info.rsplit('/', 1)[1]
+    def __call__(self, request, fname):
         catalog = request.app_context.catalog
         id, dims, ext = fname.split('.')
         photo = catalog.photo(id).get()
@@ -38,6 +37,14 @@ class ImageApplication(object):
             fname='%s.%dx%d.jpg' % (photo.id, req_size[0], req_size[1]),
             size=target_size
         )
+
+    def clear_cache(self, photo=None):
+        cache_dir = self.cache_dir
+        for fname in os.listdir(cache_dir):
+            if fname.startswith('.'):
+                continue
+            if photo is None or fname.startswith(photo.id):
+                os.remove(os.path.join(cache_dir, fname))
 
 def _target_size(req_size, orig_size):
     # Don't scale up
