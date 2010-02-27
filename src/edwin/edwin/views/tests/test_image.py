@@ -21,9 +21,6 @@ class TestImageApplication(unittest.TestCase):
         photo = Photo(self.photo_file)
         photo.id = '123456'
 
-        from happy.acl import Allow
-        from happy.acl import Everyone
-
         from edwin.views.image import ImageApplication
         app = ImageApplication(self.tmpdir)
 
@@ -103,6 +100,26 @@ class TestImageApplication(unittest.TestCase):
         version = app.version(photo, (3000, 300))
         self.assertEqual(version['size'], (400, 300))
 
+    def test_clear_cache(self):
+        from edwin.models.photo import Photo
+        photo = Photo(self.photo_file)
+        photo.id = '123456'
+
+        from edwin.views.image import ImageApplication
+        app = ImageApplication(self.tmpdir)
+        version = app.version(photo, (300, 300))
+
+        import os
+        import webob
+        cache_file = os.path.join(self.tmpdir, '123456.300x300.jpg')
+        request = webob.Request.blank('/image/123456.300x300.jpg')
+        request.app_context = DummyAppContextCatalog(photo)
+        request.authenticated_principals = ['group.Administrators']
+        app(request, version['fname'])
+
+        self.failUnless(os.path.exists(cache_file))
+        app.clear_cache()
+        self.failIf(os.path.exists(cache_file))
 
 class DummyAppContextCatalog(object):
     def __init__(self, photo):
