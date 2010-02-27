@@ -160,7 +160,7 @@ class TestPhoto(unittest.TestCase):
         self.assertEqual(p.size, (2304, 3072))
         self.assertEqual(p.image.size, (2304, 3072))
 
-        p.rotate(360)
+        p.rotate(270)
         self.assertEqual(p._rotation, 0)
         self.assertEqual(p.size, (3072, 2304))
         self.assertEqual(p.image.size, (3072, 2304))

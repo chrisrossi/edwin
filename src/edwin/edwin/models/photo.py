@@ -128,7 +128,7 @@ class Photo(object):
 
     def rotate(self, angle):
         # Set angle of rotation
-        self._rotation = angle % 360
+        self._rotation = (self._rotation + angle) % 360
 
         # Force transformations to be reapplied
         transformed_path = self._transformed_path()
