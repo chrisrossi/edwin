@@ -77,6 +77,10 @@ class Album(object):
             album.__parent__ = self
             return album
 
+    def __contains__(self, fname):
+        fpath = os.path.join(self.path, fname)
+        return os.path.exists(fpath)
+
     def keys(self):
         for fname in os.listdir(self.path):
             if fname.startswith('.'):
