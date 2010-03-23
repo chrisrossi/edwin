@@ -93,6 +93,13 @@ class TestCatalog(unittest.TestCase):
             (datetime.date(2007, 2, 16), datetime.date(2007, 2, 16))
             )
         self.assertEqual(brain.get().desc, 'Test One')
+        return catalog
+
+    def test_unindex_album(self):
+        catalog = self.test_index_album()
+        album = catalog.album('one').get()
+        catalog.unindex(album)
+        self.assertRaises(KeyError, catalog.album, 'one')
 
     def test_index_album_no_date_range(self):
         import datetime
@@ -134,6 +141,22 @@ class TestCatalog(unittest.TestCase):
         catalog.index(photo)
         brain = catalog.photo(photo.id)
         self.assertEqual(brain.size, (2304, 3072))
+
+    def test_unindex_photo(self):
+        self._make_repository(jpgs=['test.jpg'])
+        catalog = self._make_one()
+        root = self._get_root()
+        album = root['one']
+        catalog.index(album['test01.jpg'])
+        catalog.index(album['test02.jpg'])
+        self.assertEqual(len(list(catalog.photos(album))), 2)
+
+        catalog.unindex(album['test01.jpg'])
+        self.assertEqual(len(list(catalog.photos(album))), 1)
+
+        catalog.unindex(album['test02.jpg'])
+        self.assertEqual(len(list(catalog.photos(album))), 0)
+        self.assertRaises(KeyError, catalog.album, 'one')
 
     def test_albums(self):
         self._make_repository(jpgs=['test.jpg'])

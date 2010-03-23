@@ -56,6 +56,29 @@ class Catalog(object):
             elif isinstance(obj, Album):
                 self._index_album(obj, c)
 
+    def unindex(self, obj):
+        with self._cursor() as c:
+            if isinstance(obj, Photo):
+                self._unindex_photo(obj, c)
+
+                # Any photos left in album?
+                album = obj.__parent__
+                c.execute(
+                    "select count(*) from photos where album_path=?",
+                    (self._relpath(album.path),)
+                )
+                count = c.fetchone()[0]
+                if not count:
+                    self._unindex_album(album, c)
+
+                # Reindex album while we're at it, since changes in photo
+                # visibility impact album visibility.
+                else:
+                    self._index_album(album, c)
+
+            elif isinstance(obj, Album):
+                self._unindex_album(obj, c)
+
     def scan(self, album=None):
         if album is None:
             album = Album(self.root_path)
@@ -208,6 +231,9 @@ class Catalog(object):
              photo.size[0], photo.size[1], photo.timestamp)
         )
 
+    def _unindex_photo(self, photo, c):
+        c.execute("delete from photos where id=?", (photo.id,))
+
     def _index_album(self, album, c):
         album_path = self._relpath(album.path)
 
@@ -235,6 +261,10 @@ class Catalog(object):
             "end_date, month) values (?, ?, ?, ?, ?, ?)",
             (album_path, album.title, viewers, start_date, end_date, month)
         )
+
+    def _unindex_album(self, album, c):
+        album_path = self._relpath(album.path)
+        c.execute("delete from albums where path=?", (album_path,))
 
     def _relpath(self, path):
         assert path.startswith(self.root_path), path
