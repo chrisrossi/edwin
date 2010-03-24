@@ -39,9 +39,9 @@
             <div class="field" id="visibility"
                  tal:condition="api.may('edit')">${visibility}</div>
             <br/>
-            <p class="field" id="desc">
+            <div class="field" id="desc">
               <tal:block replace="structure desc"/>
-            </p>
+            </div>
             <br/>
             <a class="download_link" href="${download_link}">
               download original

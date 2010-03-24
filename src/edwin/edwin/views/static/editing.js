@@ -77,11 +77,16 @@ function make_text_input(field, value) {
         .end();
 }
 
+function escape_tags(value) {
+    return value.split("&").join("&amp;").split( "<").
+        join("&lt;").split(">").join("&gt;");
+}
+
 function make_textarea_input(field, value) {
     return $('<form><textarea rows="5" cols="22"></textarea></form>')
         .children()
         .attr('name', field['name'])
-        .html(value)
+        .html(escape_tags(value))
         .end();
 }
 
