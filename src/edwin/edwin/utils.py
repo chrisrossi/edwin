@@ -12,4 +12,5 @@ def find_trash(context, Trash=Trash):
     trash = getattr(root, 'trash', None)
     if trash is None:
         trash = root.trash = Trash()
+        trash.__parent__ = root
     return trash

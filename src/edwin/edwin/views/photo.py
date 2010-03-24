@@ -1,6 +1,7 @@
 from dateutil.parser import parse as dateparse
 import simplejson
 import time
+from webob.exc import HTTPFound
 
 from happy.acl import effective_principals
 from happy.acl import has_permission
@@ -8,6 +9,7 @@ from happy.acl import require_permission
 from happy.static import FileResponse
 from happy.traversal import model_url
 
+from edwin.utils import find_trash
 from edwin.views.api import TemplateAPI
 from edwin.views.json import JSONResponse
 from edwin.views.util import format_date
@@ -72,6 +74,9 @@ def get_actions(photo, request):
         actions.append(dict(name='hide', title='hide photo'))
     actions.append(dict(name='left', title='rotate left'))
     actions.append(dict(name='right', title='rotate right'))
+    actions.append(dict(name='delete', title='delete photo',
+                        href=model_url(request, photo, 'delete')))
+
     return actions
 
 def default_setter(photo, name, value):
@@ -162,6 +167,15 @@ def edit_photo_view(request, photo):
         request.app_context.catalog.index(photo)
 
     return JSONResponse(updated)
+
+@require_permission('edit')
+def delete_photo_view(request, photo):
+    request.app_context.catalog.unindex(photo)
+    trash = find_trash(photo)
+    trash_id = trash.trash(photo)
+    response = HTTPFound(location=model_url(request, photo.__parent__))
+    response.set_cookie('undo', 'trash:%s|Photo deleted' % trash_id)
+    return response
 
 @require_permission('view')
 def download_photo_view(request, photo):

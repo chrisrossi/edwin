@@ -135,14 +135,19 @@ function show_actions() {
     var div = $('#actions').html('');
     for (var i in actions) {
         var action = actions[i];
-        $('<a href="#"/>')
+        var anchor = $('<a/>')
             .text(action['title'])
             .attr('action', action['name'])
             .addClass('action')
             .click(function() {
                do_action($(this).attr('action'));
-            })
-            .appendTo(div)
-            .wrap('<nobr/>');
+            });
+        if ('href' in action) {
+            anchor.attr('href', action['href']);
+        }
+        else {
+            anchor.attr('href', '#');
+        }
+        anchor.appendTo(div).wrap('<nobr/>');
     }
 }

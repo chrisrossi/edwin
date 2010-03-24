@@ -203,6 +203,39 @@ class TestEditPhotoView(unittest.TestCase):
         self.assertEqual(request.app_context.images.cleared_cache,
                          [self.photo,])
 
+class TestDeletePhotoView(unittest.TestCase):
+    def setUp(self):
+        import os, sys
+        import tempfile
+        here = os.path.dirname(sys.modules[__name__].__file__)
+        tmpdir = self.tmpdir = tempfile.mkdtemp('_edwin_test')
+        src = os.path.join(here, 'test.jpg')
+        dst = os.path.join(tmpdir, 'test.jpg')
+        os.symlink(src, dst)
+
+        from edwin.models.album import Album
+        from happy.acl import Allow
+        from happy.acl import Everyone
+        album = Album(tmpdir)
+        album._acl = [(Allow, Everyone, ['view', 'edit']),]
+        self.photo = album['test.jpg']
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.tmpdir)
+
+    def test_it(self):
+        from edwin.views.photo import delete_photo_view
+        import os
+        request = dummy_request('/')
+        request.context = self.photo
+        self.failUnless(os.path.exists(self.photo.fpath))
+        response = delete_photo_view(request, self.photo)
+        self.assertEqual(response.status, '302 Found')
+        self.assertEqual(response.location, 'http://localhost/')
+        self.failIf(os.path.exists(self.photo.fpath))
+        self.assertEqual(request.app_context.catalog.unindexed, [self.photo,])
+
 def dummy_request(*args, **kw):
     import webob
     request = webob.Request.blank(*args, **kw)
@@ -239,6 +272,10 @@ class DummyImageApplication(object):
 class DummyCatalog(object):
     def __init__(self):
         self.indexed = []
+        self.unindexed = []
 
     def index(self, obj):
         self.indexed.append(obj)
+
+    def unindex(self, obj):
+        self.unindexed.append(obj)

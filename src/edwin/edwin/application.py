@@ -53,6 +53,7 @@ class Application(object):
         from edwin.models.album import Album
         from edwin.models.photo import Photo
         from edwin.views.album import album_view
+        from edwin.views.photo import delete_photo_view
         from edwin.views.photo import photo_view
         from edwin.views.photo import edit_photo_view
         from edwin.views.photo import download_photo_view
@@ -63,6 +64,7 @@ class Application(object):
         photos.register(photo_view, Photo)
         photos.register(edit_photo_view, Photo, 'edit.json')
         photos.register(download_photo_view, Photo, 'dl')
+        photos.register(delete_photo_view, Photo, 'delete')
         self.responders = [
             subapps,
             routes,
