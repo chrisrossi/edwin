@@ -77,6 +77,8 @@ class Album(object):
             album.__parent__ = self
             return album
 
+        raise KeyError(fname)
+
     def __contains__(self, fname):
         fpath = os.path.join(self.path, fname)
         return os.path.exists(fpath)

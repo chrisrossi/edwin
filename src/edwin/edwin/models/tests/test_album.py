@@ -167,4 +167,7 @@ class TestAlbum(unittest.TestCase):
         album = self._make_one()
         self.assertEqual(album.__acl__, acl)
 
+    def test_key_error(self):
+        album = self._make_one()
+        self.assertRaises(KeyError, album.__getitem__, 'foo')
 
