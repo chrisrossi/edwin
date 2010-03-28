@@ -50,6 +50,7 @@ class _DateRangeFSProperty(_FSProperty):
 
 class Album(object):
     title = _FSProperty('title')
+    location = _FSProperty('location')
     desc = _FSProperty('desc')
     date_range = _DateRangeFSProperty('date_range')
     _acl = _PickleProperty('_acl')

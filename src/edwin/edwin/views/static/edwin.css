@@ -87,3 +87,64 @@ table.layout td.right {
 .nav a {
     font-size: 85%;
 }
+
+.photo {
+    width: 720px;
+}
+
+.field {
+    background: black;
+    border: 1px solid black;
+    color: lightblue;
+    padding: 0;
+    margin: 0;
+}
+
+.hover_field {
+    border: 1px solid lightblue;
+}
+
+.empty_field {
+    color: darkgray;
+}
+
+.dynamic_field {
+    border: 1px solid lightblue;
+}
+
+.field#title {
+    color: white;
+    font-weight: bold;
+    font-size: 123.1%;
+    margin-bottom: 1em;
+}
+
+.field#location {
+    font-weight: bold;
+}
+
+.field#desc {
+    font-size: 93%;
+}
+
+input.field {
+    width: 100%;
+}
+
+#visibility {
+    font-size: 93%;
+    color: darkgray;
+}
+
+#actions {
+    margin-top: 0.4em;
+    margin-bottom: 0.4em;
+}
+
+.action {
+    font-size: 77%;
+    margin-right: 0.4em;
+    background-color: #202030;
+    border: 1px solid #303060;
+    padding: 2px;
+}

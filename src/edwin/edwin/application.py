@@ -53,6 +53,7 @@ class Application(object):
         from edwin.models.album import Album
         from edwin.models.photo import Photo
         from edwin.views.album import album_view
+        from edwin.views.album import edit_album_view
         from edwin.views.photo import delete_photo_view
         from edwin.views.photo import photo_view
         from edwin.views.photo import edit_photo_view
@@ -61,6 +62,7 @@ class Application(object):
             return app_context.photos
         photos = TraversalDispatcher(root_factory)
         photos.register(album_view, Album)
+        photos.register(edit_album_view, Album, 'edit.json')
         photos.register(photo_view, Photo)
         photos.register(edit_photo_view, Photo, 'edit.json')
         photos.register(download_photo_view, Photo, 'dl')
@@ -75,6 +77,7 @@ class Application(object):
         app_context.images = images
 
     def __call__(self, request):
+        print "DEBUG", request.path_info
         request = webob.Request(request.environ.copy())
         request.app_context = self.app_context
         request.context = self.app_context.photos # overridden by traversal

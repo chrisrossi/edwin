@@ -2,6 +2,21 @@
       xmlns:tal="http://xml.zope.org/namespaces/tal"
       metal:use-macro="api.base_macro">
   <body>
+    <metal:slot fill-slot="page_headers" tal:omit-tag="">
+      <script type="text/javascript" tal:condition="api.may('edit')">
+        var editable = ${str(api.may('edit')).lower()};
+        var actions = ${actions};
+        jQuery.ajaxSetup({
+            url: '${ajax_url}',
+            cache: false,
+            timeout: 2000,
+        });
+      </script>
+      <script src="${api.static_url}/editing.js" type="text/javascript"
+              tal:condition="api.may('edit')"></script>
+      <script src="${api.static_url}/album.js" type="text/javascript"
+              tal:condition="api.may('edit')"></script>
+    </metal:slot>
     <div metal:fill-slot="main-content">
       <table class="layout">
         <tr>
@@ -15,12 +30,14 @@
             </div>
           </td>
           <td class="right">
-            <h1>${title}</h1>
-            <div><b>${date_range}</b></div>
+            <h1 class="field" id="title">${title}</h1>
+            <div class="field" id="location">${location}</div>
+            <div>
+              <b class="field" id="date_range"
+                 edit_value="${date_range_edit}">${date_range}</b>
+            </div>
             <br/>
-            <p>
-              <tal:block replace="structure desc"/>
-            </p>
+            <p class="field" id="desc"><tal:block replace="structure desc"/></p>
             <br/>
             <a class="back_link" href="${back_link}">back</a>
           </td>

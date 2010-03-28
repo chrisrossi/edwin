@@ -46,12 +46,19 @@ function make_input(fields, element) {
         }
         decorate_field(orig_element);
         orig_element.removeClass('hover_field');
+        if (orig_element.attr('edit_value')) {
+            orig_element.attr('edit_value', this.value);
+        }
         submit_dynamic(this);
     };
     var value = $(element).html().trim();
+    var edit_value = $(element).attr('edit_value');
     var empty = $(element).data('empty');
     if (empty) {
         value = '';
+    }
+    else if (edit_value) {
+        value = edit_value;
     }
     var form = field['factory'](field, value)
         .submit(handler)
@@ -83,7 +90,7 @@ function escape_tags(value) {
 }
 
 function make_textarea_input(field, value) {
-    return $('<form><textarea rows="5" cols="22"></textarea></form>')
+    return $('<form><textarea rows="5" cols="40"></textarea></form>')
         .children()
         .attr('name', field['name'])
         .html(escape_tags(value))
