@@ -229,11 +229,11 @@ class TestDeletePhotoView(unittest.TestCase):
         import os
         request = dummy_request('/')
         request.context = self.photo
-        self.failUnless(os.path.exists(self.photo.fpath))
+        self.failUnless(os.path.exists(self.photo.fspath))
         response = delete_photo_view(request, self.photo)
         self.assertEqual(response.status, '302 Found')
         self.assertEqual(response.location, 'http://localhost/')
-        self.failIf(os.path.exists(self.photo.fpath))
+        self.failIf(os.path.exists(self.photo.fspath))
         self.assertEqual(request.app_context.catalog.unindexed, [self.photo,])
 
 def dummy_request(*args, **kw):

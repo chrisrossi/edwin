@@ -27,7 +27,7 @@ class ImageApplication(object):
             image = photo.image
             image.thumbnail(target_size, Image.ANTIALIAS)
             image.save(cache_file, quality=90)
-            os.utime(cache_file, (-1, os.path.getmtime(photo.fpath)))
+            os.utime(cache_file, (-1, os.path.getmtime(photo.fspath)))
 
         return FileResponse(cache_file)
 

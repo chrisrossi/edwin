@@ -10,7 +10,7 @@ class Trash(object):
     __parent__ = None
 
     def path(self):
-        return os.path.join(self.__parent__.path, '.trash')
+        return os.path.join(self.__parent__.fspath, '.trash')
 
     def trash(self, context):
         if isinstance(context, Photo):
@@ -25,7 +25,7 @@ class Trash(object):
         id = str(uuid.uuid1())
         folder = os.path.join(path, id)
         os.mkdir(folder)
-        restore_to = context.__parent__.path
+        restore_to = context.__parent__.fspath
         open(os.path.join(folder, '.restore_to'), 'wb').write(restore_to)
         return id, folder
 
@@ -35,10 +35,10 @@ class Trash(object):
         # Remember how to reinstantiate on restore
         with open(os.path.join(folder, '.restore'), 'wb') as f:
             f.write('photo|')
-            f.write(photo.fpath)
+            f.write(photo.fspath)
 
         # Move photo
-        src = photo.fpath
+        src = photo.fspath
         src_path, src_file = os.path.split(src)
         dst = os.path.join(folder, src_file)
         shutil.move(src, dst)

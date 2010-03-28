@@ -51,7 +51,7 @@ class Catalog(object):
 
                 # Reindex album while we're at it, since changes in photo
                 # visibility impact album visibility.
-                self._index_album(Album(os.path.dirname(obj.fpath)), c)
+                self._index_album(Album(os.path.dirname(obj.fspath)), c)
 
             elif isinstance(obj, Album):
                 self._index_album(obj, c)
@@ -65,7 +65,7 @@ class Catalog(object):
                 album = obj.__parent__
                 c.execute(
                     "select count(*) from photos where album_path=?",
-                    (self._relpath(album.path),)
+                    (self._relpath(album.fspath),)
                 )
                 count = c.fetchone()[0]
                 if not count:
@@ -173,7 +173,7 @@ class Catalog(object):
     def photos(self, album, user_principals=None):
         sql = ("select id, path, modified, album_path, width, "
                "height, timestamp from photos where album_path=?")
-        args = [self._relpath(album.path),]
+        args = [self._relpath(album.fspath),]
 
         if user_principals is not None:
             constraints = []
@@ -219,7 +219,7 @@ class Catalog(object):
             c.execute("delete from photos where id=?", (photo.id,))
 
         # Add to catalog
-        path = self._relpath(photo.fpath)
+        path = self._relpath(photo.fspath)
         album_path = os.path.dirname(path)
         viewers = '|%s|' % '|'.join(
             principals_with_permission('view', photo)
@@ -235,7 +235,7 @@ class Catalog(object):
         c.execute("delete from photos where id=?", (photo.id,))
 
     def _index_album(self, album, c):
-        album_path = self._relpath(album.path)
+        album_path = self._relpath(album.fspath)
 
         # Delete previous record
         c.execute("delete from albums where path=?", (album_path,))
@@ -263,7 +263,7 @@ class Catalog(object):
         )
 
     def _unindex_album(self, album, c):
-        album_path = self._relpath(album.path)
+        album_path = self._relpath(album.fspath)
         c.execute("delete from albums where path=?", (album_path,))
 
     def _relpath(self, path):

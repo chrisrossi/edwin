@@ -18,12 +18,12 @@ class _FSProperty(object):
         self.name = name
 
     def __get__(self, album, cls=None):
-        fpath = os.path.join(album.path, '.%s' % self.name)
+        fpath = os.path.join(album.fspath, '.%s' % self.name)
         if os.path.exists(fpath):
             return self._to_python(open(fpath).read())
 
     def __set__(self, album, value):
-        fpath = os.path.join(album.path, '.%s' % self.name)
+        fpath = os.path.join(album.fspath, '.%s' % self.name)
         if value is None:
             if os.path.exists(fpath):
                 os.remove(fpath)
@@ -56,7 +56,7 @@ class Album(object):
     _acl = _PickleProperty('_acl')
 
     def __init__(self, path):
-        self.path = path
+        self.fspath = path
 
         if self.date_range is None:
             self.date_range = self._guess_date_range()
@@ -65,7 +65,7 @@ class Album(object):
             self.update_acl()
 
     def __getitem__(self, fname):
-        fpath = os.path.join(self.path, fname)
+        fpath = os.path.join(self.fspath, fname)
         if os.path.isfile(fpath):
             photo = Photo(fpath)
             photo.__name__ = fname
@@ -81,11 +81,11 @@ class Album(object):
         raise KeyError(fname)
 
     def __contains__(self, fname):
-        fpath = os.path.join(self.path, fname)
+        fpath = os.path.join(self.fspath, fname)
         return os.path.exists(fpath)
 
     def keys(self):
-        for fname in os.listdir(self.path):
+        for fname in os.listdir(self.fspath):
             if fname.startswith('.'):
                 continue
 
@@ -93,7 +93,7 @@ class Album(object):
             if lower.endswith('.jpg') or lower.endswith('.jpeg'):
                 yield fname
 
-            path = os.path.join(self.path, fname)
+            path = os.path.join(self.fspath, fname)
             if os.path.isdir(path):
                 yield fname
 
@@ -102,7 +102,7 @@ class Album(object):
             yield self.__getitem__(fname)
 
     def photo_names(self):
-        for fname in os.listdir(self.path):
+        for fname in os.listdir(self.fspath):
             if fname.startswith('.'):
                 continue
 

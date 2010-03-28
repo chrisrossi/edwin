@@ -54,7 +54,7 @@ class TestCatalog(unittest.TestCase):
                     datetime.date(year, month, day),
                     )
             for i in xrange(5):
-                fpath = os.path.join(album.path, 'test%02d.jpg' % i)
+                fpath = os.path.join(album.fspath, 'test%02d.jpg' % i)
                 shutil.copy(test_jpgs[i%n], fpath)
                 photo = Photo(fpath)
                 photo.title = 'Test %02d' % i
@@ -124,7 +124,7 @@ class TestCatalog(unittest.TestCase):
         brain = catalog.photo(photo.id)
         self.assertEqual(brain.id, photo.id)
         self.assertEqual(brain.path, 'one/test02.jpg')
-        self.assertEqual(brain.modified, os.path.getmtime(photo.fpath))
+        self.assertEqual(brain.modified, os.path.getmtime(photo.fspath))
         self.assertEqual(brain.album_path, 'one')
         self.assertEqual(brain.get().title, 'Test 02')
         self.assertEqual(brain.size, (3072, 2304))
@@ -303,7 +303,7 @@ class TestCatalog(unittest.TestCase):
         photo = root['one']['test01.jpg']
         photo_id = photo.id
         self.failIf(catalog.photo(photo_id) is None)
-        os.remove(photo.fpath)
+        os.remove(photo.fspath)
         catalog.scan()
         self.failIf(catalog.photo(photo_id) is not None)
 

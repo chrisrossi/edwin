@@ -55,7 +55,7 @@ class _ExifProperty(object):
     def __get__(self, photo, cls=None):
         exif = getattr(photo, '_exif', None)
         if exif is None:
-            exif_tags = jpeg.getExif(photo.fpath)
+            exif_tags = jpeg.getExif(photo.fspath)
             if exif_tags is None:
                 exif = []
             else:
@@ -91,24 +91,24 @@ class Photo(object):
     _rotation = _MetadataProperty('rotation', 0)
 
     def __init__(self, fpath):
-        self.fpath = fpath
+        self.fspath = fpath
         self._metadata = Metadata(fpath)
 
         if self.date is None:
             self.date = self._guess_date()
 
         if self.size is None:
-            image = Image.open(self.fpath)
+            image = Image.open(self.fspath)
             self.size = image.size
 
         self._evolve()
 
     def _transformed_path(self):
-        return '%s.transformed.jpg' % self.fpath
+        return '%s.transformed.jpg' % self.fspath
 
     @property
     def modified(self):
-        return os.path.getmtime(self.fpath)
+        return os.path.getmtime(self.fspath)
 
     @property
     def image(self):
@@ -117,7 +117,7 @@ class Photo(object):
             return Image.open(transformed_path)
 
         # Do non-destructive transformations (preserve original file)
-        image = Image.open(self.fpath)
+        image = Image.open(self.fspath)
         transformed = False
 
         rotation = self._rotation
@@ -144,7 +144,7 @@ class Photo(object):
 
     def _guess_date(self):
         # First see if date is contained in folder structure
-        dirname = os.path.dirname(self.fpath)
+        dirname = os.path.dirname(self.fspath)
         match = date_folder_re.match(dirname)
         if match is not None:
             parts = map(int, match.groups())

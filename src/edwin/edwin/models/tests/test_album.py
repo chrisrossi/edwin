@@ -19,14 +19,14 @@ class TestAlbum(unittest.TestCase):
         if album is None:
             album = self._make_one()
         for i in xrange(n):
-            fpath = os.path.join(album.path, 'test%02d.jpg' % i)
+            fpath = os.path.join(album.fspath, 'test%02d.jpg' % i)
             shutil.copy(test_jpg, fpath)
             photo = Photo(fpath)
             photo.title = 'Test %02d' % i
 
     def _make_subalbum(self, name, album):
         import os
-        path = os.path.join(album.path, name)
+        path = os.path.join(album.fspath, name)
         os.mkdir(path)
         return album[name]
 

@@ -179,6 +179,6 @@ def delete_photo_view(request, photo):
 
 @require_permission('view')
 def download_photo_view(request, photo):
-    response = FileResponse(photo.fpath)
+    response = FileResponse(photo.fspath)
     response.content_disposition = 'attachment; filename=%s' % photo.__name__
     return response
