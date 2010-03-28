@@ -8,7 +8,7 @@ class TestPhotoView(TwillTest):
         b.find('1975-11-04')
         b.follow('photo_02.jpg')
         b.find('Test 2')
-        b.find('November 04, 1975')
+        b.find('November 4, 1975')
         b.follow('download')
         b.code(200)
 
@@ -88,7 +88,7 @@ class TestEditPhotoView(unittest.TestCase):
         response = self.fut(request, self.photo)
         self.assertEqual(response.status_int, 200)
         data = simplejson.loads(response.body)
-        self.assertEqual(data['date'], 'July 07, 1975')
+        self.assertEqual(data['date'], 'July 7, 1975')
         self.assertEqual(self.photo.date, datetime.date(1975, 7, 7))
 
     def test_set_blank_date(self):

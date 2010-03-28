@@ -1,4 +1,6 @@
 import datetime
+import re
+
 from happy.acl import effective_principals
 
 def get_months(request):
@@ -15,20 +17,37 @@ def get_months(request):
         months.append(dict(label=label, url=url))
     return months
 
+STRIP_LEADING_ZEROS_RE = re.compile(
+    '(?P<pre>\D)'
+    '(?P<zeros>0+)(?P<number>\d+)'
+)
+
+def strip_leading_zeros(s):
+    def repl(match):
+        d = match.groupdict()
+        return ''.join((d['pre'], d['number']))
+    return STRIP_LEADING_ZEROS_RE.sub(repl, s)
+
 def format_month(year, month):
     return datetime.date(year, month, 1).strftime('%B %Y')
 
 def format_date(date):
-    return date.strftime("%B %d, %Y")
+    formatted = date.strftime("%B %d, %Y")
+    return strip_leading_zeros(formatted)
 
 def format_date_range(date_range):
     start, end = date_range
     if start == end:
         return format_date(start)
     elif start.year == end.year and start.month == end.month:
-        return "%s-%s, %s" % (start.strftime('%B %d'),
-                              end.strftime('%d'),
-                              start.strftime('%Y'))
+        formatted = "%s-%s, %s" % (start.strftime('%B %d'),
+                                   end.strftime('%d'),
+                                   start.strftime('%Y'))
+        return strip_leading_zeros(formatted)
     elif start.year == end.year:
-        return "%s - %s" % (start.strftime("%B %d"), end.strftime("%B %d, %Y"))
-    return "%s - %s" % (format_date(start), format_date(end))
+        formatted = "%s - %s" % (start.strftime("%B %d"),
+                                 end.strftime("%B %d, %Y"))
+        return strip_leading_zeros(formatted)
+    formatted = "%s - %s" % (format_date(start), format_date(end))
+    return strip_leading_zeros(formatted)
+

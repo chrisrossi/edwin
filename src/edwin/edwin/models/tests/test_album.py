@@ -43,6 +43,15 @@ class TestAlbum(unittest.TestCase):
         album = self._make_one()
         self.assertEqual(album.title, "Test Foo")
 
+    def test_location(self):
+        album = self._make_one()
+        self.assertEqual(album.location, None)
+        album.location = 'Greenland'
+        self.assertEqual(album.location, 'Greenland')
+
+        album = self._make_one()
+        self.assertEqual(album.location, 'Greenland')
+
     def test_desc(self):
         album = self._make_one()
         self.assertEqual(album.desc, None)

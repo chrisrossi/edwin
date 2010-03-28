@@ -6,17 +6,17 @@ class TestFormatDateRange(unittest.TestCase):
         from datetime import date
         self.assertEqual(
             format_date_range((date(2007, 9, 9), date(2007, 9, 9))),
-            'September 09, 2007'
+            'September 9, 2007'
         )
         self.assertEqual(
             format_date_range((date(2007, 9, 9), date(2007, 9, 11))),
-            'September 09-11, 2007'
+            'September 9-11, 2007'
         )
         self.assertEqual(
             format_date_range((date(2007, 9, 9), date(2007, 10, 9))),
-            'September 09 - October 09, 2007'
+            'September 9 - October 9, 2007'
         )
         self.assertEqual(
             format_date_range((date(2007, 9, 9), date(2008, 9, 9))),
-            'September 09, 2007 - September 09, 2008'
+            'September 9, 2007 - September 9, 2008'
         )
