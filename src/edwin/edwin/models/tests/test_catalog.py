@@ -294,6 +294,18 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(months[0], '2008-03')
         self.assertEqual(months[1], '2007-02')
 
+    def test_delete_photo(self):
+        import os
+        self._make_repository()
+        catalog = self._make_one()
+        catalog.scan()
+        root = self._get_root()
+        photo = root['one']['test01.jpg']
+        photo_id = photo.id
+        self.failIf(catalog.photo(photo_id) is None)
+        os.remove(photo.fpath)
+        catalog.scan()
+        self.failIf(catalog.photo(photo_id) is not None)
 
 class TestCursorContextFactory(unittest.TestCase):
     def test_good(self):
