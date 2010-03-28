@@ -48,16 +48,21 @@ class ThreadedConnectionManager(object):
         self._db_file = db_file
 
     def get_connection(self):
-        connection = getattr(self._connections, 'connection', None)
+        connection, depth = getattr(self._connections, 'connection', (None, 0))
         if connection is None:
             connection = sqlite3.connect(self._db_file)
-            self._connections.connection = connection
+            self._connections.connection = (connection, depth)
+        else:
+            self._connections.connection = (connection, depth + 1)
         return connection
 
     def release_connection(self, connection):
-        assert connection is self._connections.connection
-        del self._connections.connection
-
+        cur_connection, depth = self._connections.connection
+        assert connection is cur_connection
+        if depth == 0:
+            del self._connections.connection
+        else:
+            self._connections.connection = (connection, depth - 1)
 
 
 def get_default_config_file():
