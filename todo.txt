@@ -1,0 +1,5 @@
+Write test for None in months bug.
+
+Fix rotate image.
+
+Automatically create cached_images dir.
