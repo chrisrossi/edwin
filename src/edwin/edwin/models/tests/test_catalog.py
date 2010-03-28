@@ -305,7 +305,7 @@ class TestCatalog(unittest.TestCase):
         self.failIf(catalog.photo(photo_id) is None)
         os.remove(photo.fspath)
         catalog.scan()
-        self.failIf(catalog.photo(photo_id) is not None)
+        self.assertRaises(KeyError, catalog.photo, photo_id)
 
 class TestCursorContextFactory(unittest.TestCase):
     def test_good(self):

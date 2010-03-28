@@ -61,21 +61,6 @@ class Catalog(object):
             if isinstance(obj, Photo):
                 self._unindex_photo(obj, c)
 
-                # Any photos left in album?
-                album = obj.__parent__
-                c.execute(
-                    "select count(*) from photos where album_path=?",
-                    (self._relpath(album.fspath),)
-                )
-                count = c.fetchone()[0]
-                if not count:
-                    self._unindex_album(album, c)
-
-                # Reindex album while we're at it, since changes in photo
-                # visibility impact album visibility.
-                else:
-                    self._index_album(album, c)
-
             elif isinstance(obj, Album):
                 self._unindex_album(obj, c)
 
@@ -90,6 +75,12 @@ class Catalog(object):
                 elif isinstance(node, Album):
                     if node.has_photos():
                         self._index_album(node, c)
+
+        for album in self.albums():
+            for photo in self.photos(album):
+                if not os.path.exists(photo.fspath):
+                    with self._cursor() as c:
+                        self._unindex_photo(photo, c)
 
     def album(self, path):
         with self._cursor() as c:
@@ -187,7 +178,9 @@ class Catalog(object):
         with self._cursor() as c:
             c.execute(sql, args)
             for row in c:
-                yield PhotoBrain(self, *row)
+                brain = PhotoBrain(self, *row)
+                brain.__parent__ = album
+                yield brain
 
     def months(self, user_principals=None):
         with self._cursor() as c:
@@ -233,6 +226,21 @@ class Catalog(object):
 
     def _unindex_photo(self, photo, c):
         c.execute("delete from photos where id=?", (photo.id,))
+
+        # Any photos left in album?
+        album = photo.__parent__
+        c.execute(
+            "select count(*) from photos where album_path=?",
+            (self._relpath(album.fspath),)
+        )
+        count = c.fetchone()[0]
+        if not count:
+            self._unindex_album(album, c)
+
+        # Reindex album while we're at it, since changes in photo
+        # visibility impact album visibility.
+        else:
+            self._index_album(album, c)
 
     def _index_album(self, album, c):
         album_path = self._relpath(album.fspath)
@@ -280,13 +288,13 @@ class PhotoBrain(object):
         self.catalog = catalog
         self.id = id
         self.path = path
+        self.fspath = os.path.join(catalog.root_path, path)
         self.modified = modified
         self.album_path = album_path
         self.size = (width, height)
         self.timestamp = timestamp
 
     def get(self):
-        #return Photo(os.path.join(self.catalog.root_path, self.path))
         return self.catalog._find_model(self.path)
 
     def url(self, request):
@@ -300,6 +308,7 @@ class AlbumBrain(object):
                  month):
         self.catalog = catalog
         self.path = path
+        self.fspath = os.path.join(catalog.root_path, path)
         self.title = title
         if start_date is not None:
             self.date_range = (_parse_date(start_date), _parse_date(end_date))
