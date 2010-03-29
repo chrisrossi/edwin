@@ -173,6 +173,8 @@ class Photo(object):
 
     def _evolve1(self):
         metadata = self._metadata
+
+        # Convert published to visibility
         if 'published' in metadata:
             if metadata['published']:
                 self.visibility = 'public'
@@ -180,3 +182,13 @@ class Photo(object):
                 self.visibility = 'private'
             del metadata['published']
 
+        # Earlier versions using xml based metadata could hide entire albums
+        # using the album-wide xml, leaving the individual photo visibility
+        # alone.  Now album visibility depends entirely on visibility of
+        # contained photos and cannot be set separately.  Look for old style
+        # album hiding and hide this photo if detected.
+        album_path = os.path.dirname(self.fspath)
+        xml_path = os.path.join(album_path, 'index.xml')
+        if os.path.exists(xml_path): # pragma NO COVERAGE
+            if 'skip="true"' in open(xml_path).read().lower():
+                self.visibility = 'private'
