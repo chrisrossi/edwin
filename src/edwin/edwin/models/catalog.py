@@ -19,7 +19,7 @@ import uuid
 
 class Catalog(object):
     SW_VERSION = 1
-
+    ALBUM_COLUMNS = "path, title, start_date, end_date, month, new"
     _version = None
 
     def __init__(self, root_path, connection_manager):
@@ -85,8 +85,8 @@ class Catalog(object):
     def album(self, path):
         with self._cursor() as c:
             c.execute(
-                "select path, title, start_date, end_date, month "
-                "from albums where path=?", (path,)
+                "select %s from albums where path=?" % self.ALBUM_COLUMNS,
+                (path,)
             )
             row = c.fetchone()
             if not row:
@@ -110,8 +110,7 @@ class Catalog(object):
                end_date=None,
                month=None,
                limit=None):
-        sql = ["select path, title, start_date, end_date, month "
-               "from albums",]
+        sql = ["select %s from albums" % self.ALBUM_COLUMNS,]
         args = []
         constraints = []
         if user_principals is not None and user_principals:
@@ -157,6 +156,27 @@ class Catalog(object):
                 c.execute(sql, args)
             else:
                 c.execute(sql)
+
+            for row in c:
+                yield AlbumBrain(self, *row)
+
+    def new_albums(self, user_principals=None):
+        sql = ["select %s from albums" % self.ALBUM_COLUMNS,]
+        constraints = ['new=?',]
+        args = [True]
+        if user_principals is not None and user_principals:
+            subconstraints = []
+            for principal in user_principals:
+                subconstraints.append("allowed_viewers like ?")
+                args.append("%%|%s|%%" % principal)
+            constraints.append("(%s)" % ' or '.join(subconstraints))
+
+        sql.append('where')
+        sql.append(' and '.join(constraints))
+        sql = ' '.join(sql)
+
+        with self._cursor() as c:
+            c.execute(sql, args)
 
             for row in c:
                 yield AlbumBrain(self, *row)
@@ -266,8 +286,9 @@ class Catalog(object):
             start_date = end_date = month = None
         c.execute(
             "insert into albums (path, title, allowed_viewers, start_date, "
-            "end_date, month) values (?, ?, ?, ?, ?, ?)",
-            (album_path, album.title, viewers, start_date, end_date, month)
+            "end_date, month, new) values (?, ?, ?, ?, ?, ?, ?)",
+            (album_path, album.title, viewers, start_date, end_date, month,
+             album.new)
         )
 
     def _unindex_album(self, album, c):
@@ -305,7 +326,7 @@ class PhotoBrain(object):
 
 class AlbumBrain(object):
     def __init__(self, catalog, path, title, start_date, end_date,
-                 month):
+                 month, new):
         self.catalog = catalog
         self.path = path
         self.fspath = os.path.join(catalog.root_path, path)
@@ -315,6 +336,7 @@ class AlbumBrain(object):
         else:
             self.date_range = None
         self.month = month
+        self.new = new
 
     def get(self):
         return self.catalog._find_model(self.path)
@@ -384,5 +406,6 @@ init_sql = [
     "    allowed_viewers text,"
     "    start_date text,"
     "    end_date text,"
-    "    month text)",
+    "    month text,"
+    "    new bool)",
 ]

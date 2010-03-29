@@ -2,6 +2,7 @@ import datetime
 import re
 
 from happy.acl import effective_principals
+from happy.traversal import model_url
 
 def get_months(request):
     app_context = request.app_context
@@ -16,6 +17,14 @@ def get_months(request):
         )
         months.append(dict(label=label, url=url))
     return months
+
+def brain_url(request, brain):
+    return '/'.join((request.application_url, brain.path))
+
+def get_new_albums(request):
+    catalog = request.app_context.catalog
+    return [dict(label=a.title, url=brain_url(request, a)) for a in
+            catalog.new_albums(effective_principals(request))]
 
 STRIP_LEADING_ZEROS_RE = re.compile(
     '(?P<pre>\D)'

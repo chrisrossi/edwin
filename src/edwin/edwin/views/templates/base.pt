@@ -23,7 +23,18 @@
       <div id="bd">
         <div class="yui-b">
 
-          <div id="sidebar">
+          <div id="sidebar"
+               tal:define="new_albums api.new_albums()">
+            <tal:block condition="new_albums and api.may('edit')" omit-tag="">
+              <h1>New Albums</h1>
+              <ul>
+                <li tal:repeat="album new_albums">
+                  <a href="${album.url}">${album.label}</a>
+                </li>
+              </ul>
+              <br/>
+            </tal:block>
+
             <!-- Sidebar -->
             <p>
               <a href="${api.application_url}">home</a>
@@ -31,10 +42,11 @@
             <br/>
             <h1>Archive</h1>
             <ul>
-              <li tal:repeat="month api.months">
+              <li tal:repeat="month api.months()">
                 <a href="${month.url}">${month.label}</a>
               </li>
             </ul>
+
           </div>
 
         </div>

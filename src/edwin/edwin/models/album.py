@@ -167,6 +167,13 @@ class Album(object):
             return 'new'
         return 'private'
 
+    @property
+    def new(self):
+        for child in self.photos():
+            if child.visibility == 'new':
+                return True
+        return False
+
     def update_acl(self):
         if self.has_photos() and self.visibility() != 'public':
             self._acl = [
