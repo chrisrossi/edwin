@@ -40,6 +40,8 @@ class Application(object):
         # Image application (serves images and creates sizes)
         from edwin.views.image import ImageApplication
         images = ImageApplication(app_context.image_cache_dir)
+        if not os.path.exists(app_context.image_cache_dir):
+            os.mkdir(app_context.image_cache_dir)
 
         # Routes
         from edwin.views.home import homepage_view
