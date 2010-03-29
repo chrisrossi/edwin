@@ -104,7 +104,10 @@ class Photo(object):
         self._evolve()
 
     def _transformed_path(self):
-        return '%s.transformed.jpg' % self.fspath
+        dirname, fname = os.path.split(self.fspath)
+        fname, ext = os.path.splitext(fname)
+        tfname = '.%s.transformed%s' % (fname, ext)
+        return os.path.join(dirname, tfname)
 
     @property
     def modified(self):
