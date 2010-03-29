@@ -46,10 +46,14 @@ def format_month(year, month):
     return datetime.date(year, month, 1).strftime('%B %Y')
 
 def format_date(date):
+    if date is None:
+        return ''
     formatted = date.strftime("%B %d, %Y")
     return strip_leading_zeros(formatted)
 
 def format_date_range(date_range):
+    if date_range is None:
+        return ''
     start, end = date_range
     if start == end:
         return format_date(start)
