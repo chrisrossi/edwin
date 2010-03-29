@@ -294,6 +294,25 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(months[0], '2008-03')
         self.assertEqual(months[1], '2007-02')
 
+    def test_months_filter_None(self):
+        from datetime import date
+        import os
+        import pkg_resources
+        self._make_repository(jpgs=['test.jpg'])
+        root = self._get_root()
+        three = os.path.join(root.fspath, 'three')
+        os.mkdir(three)
+        src = pkg_resources.resource_filename(
+            'edwin.models.tests', 'test3.jpg')
+        dst = os.path.join(three, 'test3.jpg')
+        os.symlink(src, dst)
+        catalog = self._make_one()
+        catalog.scan()
+
+        months = catalog.months()
+        self.assertEqual(len(months), 1, months)
+        self.assertEqual(months[0], '2007-02')
+
     def test_delete_photo(self):
         import os
         self._make_repository()

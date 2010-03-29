@@ -200,7 +200,7 @@ class Catalog(object):
                 c.execute(sql, args)
             else:
                 c.execute(sql)
-            return [row[0] for row in c]
+            return [row[0] for row in c if row[0]]
 
     def _index_photo(self, photo, c):
         # Has photo been assigned id?
