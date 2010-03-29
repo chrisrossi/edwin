@@ -27,9 +27,15 @@ function ajax_success(data) {
     }
 }
 
+function ajax_error(request, status, error) {
+    // XXX This doesn't seem to get called for timeouts.  jQuery bug?
+    ajax_error("Error: " + status + ": " + error);
+}
+
 function submit_dynamic(form) {
     jQuery.ajax({
         success: ajax_success,
+        error: ajax_error,
         data: $(form).serialize(),
         dataType: 'json',
     })

@@ -10,7 +10,7 @@
         jQuery.ajaxSetup({
             url: '${ajax_url}',
             cache: false,
-            timeout: 2000,
+            timeout: 30000,
         });
       </script>
       <script src="${api.static_url}/editing.js" type="text/javascript"

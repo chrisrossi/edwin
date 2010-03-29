@@ -1,3 +1,1 @@
-Fix rotate image.
-
 Make sure previously hidden photos are still hidden!

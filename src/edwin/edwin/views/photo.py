@@ -150,6 +150,7 @@ def edit_photo_view(request, photo):
         action = actions.get(request.params['action'], None)
         if action is not None:
             updated = action(photo, request)
+            print 'DEBUG', updated
             updated['actions'] = get_actions(photo, request)
             return JSONResponse(updated)
 
