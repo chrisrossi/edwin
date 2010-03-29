@@ -187,8 +187,14 @@ class Photo(object):
         # alone.  Now album visibility depends entirely on visibility of
         # contained photos and cannot be set separately.  Look for old style
         # album hiding and hide this photo if detected.
+        #
+        # Additionally, a photo could be hidden by simply omitting it from
+        # the index.xml.  Set visibility to private on photos that don't
+        # appear in the index.xml, if index.xml is present.
         album_path = os.path.dirname(self.fspath)
         xml_path = os.path.join(album_path, 'index.xml')
         if os.path.exists(xml_path): # pragma NO COVERAGE
-            if 'skip="true"' in open(xml_path).read().lower():
+            xml = open(xml_path).read().lower()
+            fname = os.path.split(self.fspath)[1]
+            if 'skip="true"' in xml or fname not in xml:
                 self.visibility = 'private'

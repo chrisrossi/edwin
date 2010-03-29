@@ -92,6 +92,11 @@ class OldMetadata(dict):
 
             assert i < len(c), "Bad metadata"
 
+            # In old metadata, absence of 'published' attribute was equivalent
+            # to published == False
+            if not 'published' in self:
+                self['published'] = 'False'
+
     def save( self ):
         """Writes metadata out to photo comments."""
 

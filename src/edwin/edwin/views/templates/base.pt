@@ -25,6 +25,12 @@
 
           <div id="sidebar"
                tal:define="new_albums api.new_albums()">
+            <!-- Sidebar -->
+            <p>
+              <a href="${api.application_url}">home</a>
+            </p>
+            <br/>
+
             <tal:block condition="new_albums and api.may('edit')" omit-tag="">
               <h1>New Albums</h1>
               <ul>
@@ -35,11 +41,6 @@
               <br/>
             </tal:block>
 
-            <!-- Sidebar -->
-            <p>
-              <a href="${api.application_url}">home</a>
-            </p>
-            <br/>
             <h1>Archive</h1>
             <ul>
               <li tal:repeat="month api.months()">

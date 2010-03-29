@@ -31,24 +31,27 @@ class OldMetadataTests(unittest.TestCase):
 
         del m
         m = Metadata(self.fname)
-        self.assertEqual(len(m), 2)
+        self.assertEqual(len(m), 3)
         self.assertEqual(m['foo'], 'bar')
         self.assertEqual(m['hello'], 'howdy')
+        self.assertEqual(m['published'], 'False')
 
         m['foo'] = 'baz'
         m['hanky'] = 'panky'
-        self.assertEqual(len(m), 3)
+        self.assertEqual(len(m), 4)
         self.assertEqual(m['foo'], 'baz')
         self.assertEqual(m['hello'], 'howdy')
         self.assertEqual(m['hanky'], 'panky')
+        self.assertEqual(m['published'], 'False')
         m.save()
 
         del m
         m = Metadata(self.fname)
-        self.assertEqual(len(m), 3)
+        self.assertEqual(len(m), 4)
         self.assertEqual(m['foo'], 'baz')
         self.assertEqual(m['hello'], 'howdy')
         self.assertEqual(m['hanky'], 'panky')
+        self.assertEqual(m['published'], 'False')
 
 class MetadataTests(unittest.TestCase):
     def setUp(self):

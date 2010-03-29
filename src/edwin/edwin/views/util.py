@@ -21,9 +21,14 @@ def get_months(request):
 def brain_url(request, brain):
     return '/'.join((request.application_url, brain.path))
 
+def _title_or_path(brain):
+    if not brain.title:
+        return brain.path
+    return brain.title
+
 def get_new_albums(request):
     catalog = request.app_context.catalog
-    return [dict(label=a.title, url=brain_url(request, a)) for a in
+    return [dict(label=_title_or_path(a), url=brain_url(request, a)) for a in
             catalog.new_albums(effective_principals(request))]
 
 STRIP_LEADING_ZEROS_RE = re.compile(
