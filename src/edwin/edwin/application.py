@@ -79,7 +79,6 @@ class Application(object):
         app_context.images = images
 
     def __call__(self, request):
-        print "DEBUG", request.path_info
         request = webob.Request(request.environ.copy())
         request.app_context = self.app_context
         request.context = self.app_context.photos # overridden by traversal
@@ -90,7 +89,7 @@ class Application(object):
 
         return response
 
-def login_middleware(app, config_file=None):
+def login_middleware(app, config_file=None, form_template=None):
     from happy.login import FormLoginMiddleware
     from happy.login import HtpasswdBroker
     from happy.login import FlatFilePrincipalsBroker
@@ -111,6 +110,7 @@ def login_middleware(app, config_file=None):
         HtpasswdBroker(htpasswd_file),
         FlatFilePrincipalsBroker(principals_file),
         RandomUUIDCredentialBroker(credentials_file),
+        form_template=form_template,
     )
 
 import time
@@ -125,14 +125,15 @@ def timeit(app):
         return response
     return middleware
 
-def make_app(config_file=None):
+def make_app(config_file=None, benchmark=False, login_template=None):
     from edwin.config import read_config
     config = {}
     if config_file is not None and os.path.exists(config_file):
         config = read_config(config_file)
     app = Application(ApplicationContext(config=config))
-    app = login_middleware(app)
-    app = timeit(app)
+    app = login_middleware(app, config_file, form_template=login_template)
+    if benchmark:
+        app = timeit(app)
     return wsgi_app(app)
 
 def main(args=sys.argv[1:]): #pragma NO COVERAGE, called from console

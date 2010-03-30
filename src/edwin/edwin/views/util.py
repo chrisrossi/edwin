@@ -26,7 +26,7 @@ def _title_or_path(brain):
         return brain.path
     return brain.title
 
-def get_new_albums(request):
+def get_new_albums(request, catalog=None):
     catalog = request.app_context.catalog
     return [dict(label=_title_or_path(a), url=brain_url(request, a)) for a in
             catalog.new_albums(effective_principals(request))]

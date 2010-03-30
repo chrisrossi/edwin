@@ -20,7 +20,6 @@ class TwillTest(unittest.TestCase):
         tmpdir = tempfile.mkdtemp('edwin_', '_twill_test_fixture')
         here = os.path.dirname(sys.modules[__name__].__file__)
         test_jpg = os.path.join(here, 'test.jpg')
-        test_ini = os.path.join(here, 'test.ini')
         photos_dir = os.path.join(tmpdir, 'var', 'photos')
 
         import datetime
@@ -28,11 +27,13 @@ class TwillTest(unittest.TestCase):
         from edwin.models.photo import Photo
         date = datetime.date(*self.start_date)
 
+        from happy.acl import ALL_PERMISSIONS
         from happy.acl import Allow
         from happy.acl import Everyone
         os.makedirs(photos_dir)
         Album(photos_dir)._acl = [
-            (Allow, Everyone, ['view'])
+            (Allow, Everyone, ['view']),
+            (Allow, 'group.Administrators', ALL_PERMISSIONS),
         ]
 
         for i in xrange(self.n_albums):
@@ -54,16 +55,41 @@ class TwillTest(unittest.TestCase):
 
         etc = os.path.join(tmpdir, 'etc')
         os.mkdir(etc)
-        ini_file = os.path.join(etc, 'test.ini')
-        shutil.copy(test_ini, ini_file)
+        for fname in ('test.ini', 'htpasswd', 'principals'):
+            src = os.path.join(here, fname)
+            dst = os.path.join(etc, fname)
+            os.symlink(src, dst)
 
+        ini_file = os.path.join(etc, 'test.ini')
         from edwin.config import ApplicationContext
         app_context = ApplicationContext(ini_file)
         app_context.catalog.scan()
 
+        # Twill is unable to parse the standard login form.  I don't know why.
+        # I don't want to fuck with it any more.  Substitute this very easy
+        # to parse one.
+        def login_template(**kw):
+            return u"""
+                <html>
+                  <head>
+                    <title>WTF?</title>
+                  </head>
+                  <body>
+                    <form method="POST" name="login">
+                      <input type="hidden" name="redirect_to"
+                             value="%(redirect_to)s">
+                      <input name="login" value="%(login)s">
+                      <input name="password" type="password">
+                      <input type="submit" value="log in">
+                      %(status_msg)s
+                    </form>
+                  </body>
+                </html>
+            """ % kw
+
         # Init wsgi app
         from edwin.application import make_app
-        app = make_app(ini_file)
+        app = make_app(ini_file, login_template=login_template)
         def get_app():
             return app
 
@@ -74,6 +100,15 @@ class TwillTest(unittest.TestCase):
         twill.commands.code(200)
 
         self.tmpdir = tmpdir
+
+    def login(self):
+        from twill import commands as b
+        b.go('/login')
+        b.fv('login', 'login', 'chris')
+        b.fv('login', 'password', 'chris')
+        b.submit()
+
+        b.find('You are logged in as chris.')
 
     def tearDown(self):
         import shutil
