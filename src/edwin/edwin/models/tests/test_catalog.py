@@ -19,7 +19,7 @@ class TestCatalog(unittest.TestCase):
         pass
 
     def _make_repository(self, jpgs=['test.jpg', 'test2.jpg', 'test3.jpg'],
-                         date=(2007,2,15)):
+                         date=(2007,2,15), visibility='new'):
         import datetime
         import os
         import shutil
@@ -58,6 +58,7 @@ class TestCatalog(unittest.TestCase):
                 shutil.copy(test_jpgs[i%n], fpath)
                 photo = Photo(fpath)
                 photo.title = 'Test %02d' % i
+                photo.visibility = visibility
 
     def _make_one(self):
         from edwin.models.catalog import Catalog
@@ -179,6 +180,43 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(albums[0].title, 'One')
 
         albums = list(catalog.albums(['group.Administrators']))
+        self.assertEqual(len(albums), 2)
+        self.assertEqual(albums[0].title, 'Two')
+        self.assertEqual(albums[1].title, 'One')
+
+    def test_new_albums(self):
+        self._make_repository(jpgs=['test.jpg'], visibility='private')
+        root = self._get_root()
+        photo = root['one']['test02.jpg']
+        photo.visibility = 'public'
+        photo.__parent__.update_acl()
+        photo = root['one']['test03.jpg']
+        photo.visibility = 'new'
+        photo.__parent__.update_acl()
+
+        catalog = self._make_one()
+        catalog.scan()
+
+        albums = list(catalog.new_albums())
+        self.assertEqual(len(albums), 1)
+        self.assertEqual(albums[0].title, 'One')
+
+        photo = root['two']['test03.jpg']
+        photo.visibility = 'new'
+        photo.__parent__.update_acl()
+        catalog.scan()
+
+        albums = list(catalog.new_albums())
+        self.assertEqual(len(albums), 2)
+        self.assertEqual(albums[0].title, 'Two')
+        self.assertEqual(albums[1].title, 'One')
+
+        from happy.acl import Everyone
+        albums = list(catalog.new_albums([Everyone]))
+        self.assertEqual(len(albums), 1)
+        self.assertEqual(albums[0].title, 'One')
+
+        albums = list(catalog.new_albums(['group.Administrators']))
         self.assertEqual(len(albums), 2)
         self.assertEqual(albums[0].title, 'Two')
         self.assertEqual(albums[1].title, 'One')
