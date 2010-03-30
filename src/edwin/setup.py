@@ -39,10 +39,10 @@ setup(name='edwin',
       test_suite='edwin',
       entry_points={
           'console_scripts': [
-              'scan=edwin.scripts.scan:main',
-              'debug=edwin.scripts.debug:main',
-              'serve=edwin.application:main',
-              'profile=edwin.application:profile',
+              'edwin_scan=edwin.scripts.scan:main',
+              'edwin_debug=edwin.scripts.debug:main',
+              'edwin=edwin.application:main',
+              'edwin_profile=edwin.application:profile',
               ]
           }
       )
