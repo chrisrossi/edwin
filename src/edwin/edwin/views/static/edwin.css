@@ -8,6 +8,10 @@ body {
     padding: 1em;
 }
 
+p {
+  margin-bottom: 1em;
+}
+
 h1 {
     color: white;
     font-weight: bold;
