@@ -37,7 +37,7 @@
                  edit_value="${date_range_edit}">${date_range}</b>
             </div>
             <br/>
-            <p class="field" id="desc"><tal:block replace="structure desc"/></p>
+            <div class="field" id="desc"><tal:block replace="structure desc"/></div>
             <br/>
             <a class="back_link" href="${back_link}">back</a>
           </td>
