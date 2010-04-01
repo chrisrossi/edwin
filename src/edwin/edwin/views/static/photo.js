@@ -25,5 +25,6 @@ $(document).ready(function(){
     if (editable) {
         decorate_fields(fields);
         show_actions();
+        add_visibility_classes();
     }
 });

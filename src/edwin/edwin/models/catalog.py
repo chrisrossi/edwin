@@ -20,6 +20,8 @@ import uuid
 class Catalog(object):
     SW_VERSION = 1
     ALBUM_COLUMNS = "path, title, start_date, end_date, month, new"
+    PHOTO_COLUMNS = ("id, path, modified, allowed_viewers,album_path, width,"
+                     "height, timestamp, visibility")
     _version = None
 
     def __init__(self, root_path, connection_manager):
@@ -96,13 +98,12 @@ class Catalog(object):
     def photo(self, id):
         with self._cursor() as c:
             c.execute(
-                "select path, modified, album_path, width, height,"
-                "timestamp from photos where id=?", (id,)
+                "select %s from photos where id=?" % self.PHOTO_COLUMNS, (id,)
             )
             row = c.fetchone()
             if not row:
                 raise KeyError(id)
-            return PhotoBrain(self, id, *row)
+            return PhotoBrain(self, *row)
 
     def albums(self,
                user_principals=None,
@@ -182,8 +183,7 @@ class Catalog(object):
                 yield AlbumBrain(self, *row)
 
     def photos(self, album, user_principals=None):
-        sql = ("select id, path, modified, album_path, width, "
-               "height, timestamp from photos where album_path=?")
+        sql = ("select %s from photos where album_path=?" % self.PHOTO_COLUMNS)
         args = [self._relpath(album.fspath),]
 
         if user_principals is not None:
@@ -238,10 +238,10 @@ class Catalog(object):
             principals_with_permission('view', photo)
         )
         c.execute(
-            "insert into photos (id, path, modified, allowed_viewers, "
-            "album_path, width, height, timestamp) values(?,?,?,?,?,?,?,?)",
+            "insert into photos (%s) values(?,?,?,?,?,?,?,?,?)" %
+            self.PHOTO_COLUMNS,
             (photo.id, path, photo.modified, viewers, album_path,
-             photo.size[0], photo.size[1], photo.timestamp)
+             photo.size[0], photo.size[1], photo.timestamp, photo.visibility)
         )
 
     def _unindex_photo(self, photo, c):
@@ -304,8 +304,9 @@ class Catalog(object):
         return find_model(root, path)
 
 class PhotoBrain(object):
-    def __init__(self, catalog, id, path, modified, album_path,
-                 width, height, timestamp):
+    def __init__(self, catalog, id, path, allowed_viewers, modified,
+                 album_path,
+                 width, height, timestamp, visibility):
         self.catalog = catalog
         self.id = id
         self.path = path
@@ -314,6 +315,7 @@ class PhotoBrain(object):
         self.album_path = album_path
         self.size = (width, height)
         self.timestamp = timestamp
+        self.visibility = visibility
 
     def get(self):
         return self.catalog._find_model(self.path)
@@ -396,6 +398,7 @@ init_sql = [
     "    album_path text,"
     "    width int,"
     "    height int,"
+    "    visibility text,"
     "    timestamp)",
 
     "create index photos_by_album_path on photos (album_path)",

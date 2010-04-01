@@ -148,3 +148,15 @@ input.field {
     border: 1px solid #303060;
     padding: 2px;
 }
+
+img.visibility-new {
+    border: 2px solid yellow;
+}
+
+img.visibility-public {
+    border: 2px solid green;
+}
+
+img.visibility-private {
+    border: 2px solid red;
+}

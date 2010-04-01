@@ -21,6 +21,15 @@ function ajax_success(data) {
             show_actions();
             continue;
         }
+        else if (name == 'visibility') {
+            var img = $('.photo img');
+            var old_visibility = img.attr('visibility');
+            var new_visibility = data[name];
+            img.removeClass('visibility-' + old_visibility);
+            img.attr('visibility', new_visibility);
+            img.addClass('visibility-' + new_visibility);
+        }
+
         var element = $('.field#' + name);
         element.removeClass('empty_field').html(data[name]);
         decorate_field(element);
@@ -169,3 +178,10 @@ function show_actions() {
         anchor.appendTo(div).wrap('<nobr/>');
     }
 }
+
+function add_visibility_classes() {
+    $("img[visibility='new']").addClass('visibility-new');
+    $("img[visibility='public']").addClass('visibility-public');
+    $("img[visibility='private']").addClass('visibility-private');
+}
+

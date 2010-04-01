@@ -25,7 +25,8 @@
             <div class="thumbnail" tal:repeat="photo photos">
               <a href="${photo.url}">
                 <img src="${photo.src}" width="${photo.thumb.size[0]}"
-                     height="${photo.thumb.size[1]}"/>
+                     height="${photo.thumb.size[1]}"
+                     visibility="${photo.visibility}"/>
               </a>
             </div>
           </td>

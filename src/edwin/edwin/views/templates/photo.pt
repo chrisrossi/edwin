@@ -24,7 +24,8 @@
       <table class="layout" border="1">
         <tr>
           <td class="left photo">
-            <img src="${src}" width="${width}" height="${height}"/>
+            <img src="${src}" width="${width}" height="${height}"
+                 visibility="${visibility}"/>
           </td>
           <td class="right">
             <div class="nav">

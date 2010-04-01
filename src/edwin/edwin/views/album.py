@@ -22,6 +22,7 @@ def album_view(request, album):
             url=photo.url(request),
             thumb=thumbnail,
             src=images_route.url(request, fname=thumbnail['fname']),
+            visibility=photo.visibility,
             )
         )
 
