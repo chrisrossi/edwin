@@ -59,9 +59,11 @@ def default_setter(album, name, value):
     return getattr(album, name)
 
 def cascade_setter(album, name, value):
+    prev_value = getattr(album, name, None)
     ret_value = default_setter(album, name, value)
     for photo in album.photos():
-        if not getattr(photo, name, None):
+        photo_value = getattr(photo, name, None)
+        if photo_value is None or photo_value == prev_value:
             setattr(photo, name, value)
     return ret_value
 

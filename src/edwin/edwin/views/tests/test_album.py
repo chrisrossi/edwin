@@ -52,6 +52,20 @@ class TestEditAlbumView(unittest.TestCase):
         self.assertEqual(self.album['test2.jpg'].title, 'foo')
         self.failIf('bad_title' in data)
 
+        # Make sure title of photo follows subsequent changes when same as
+        # album
+        request = dummy_request('/', POST={
+            'title': 'bar',
+        })
+        request.context = self.album
+        response = self.fut(request, self.album)
+        self.assertEqual(response.status_int, 200)
+        data = simplejson.loads(response.body)
+        self.assertEqual(data['title'], 'bar')
+        self.assertEqual(self.album.title, 'bar')
+        self.assertEqual(self.album['test1.jpg'].title, 'Title')
+        self.assertEqual(self.album['test2.jpg'].title, 'bar')
+
     def test_set_location(self):
         import simplejson
         self.album['test1.jpg'].location = 'Location'
