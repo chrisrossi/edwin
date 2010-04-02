@@ -1,3 +1,4 @@
+import datetime
 from dateutil.parser import parse as dateparse
 
 from happy.acl import effective_principals
@@ -142,7 +143,10 @@ actions = {
 
 EDITABLE_DATE_FORMAT = '%Y/%m/%d'
 def format_editable_date_range(date_range):
-    begin, end = date_range
+    if date_range is None:
+        begin = end = datetime.date.today()
+    else:
+        begin, end = date_range
     return '%s - %s' %(
         begin.strftime(EDITABLE_DATE_FORMAT),
         end.strftime(EDITABLE_DATE_FORMAT)
