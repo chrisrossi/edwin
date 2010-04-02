@@ -80,13 +80,11 @@ class Catalog(object):
         if album is None:
             album = Album(self.root_path)
 
-        print "Indexing new photos"
         for node in depthfirst(album):
             if isinstance(node, Album):
                 if node.has_photos():
-                    self.index_album_and_photos(node, c)
+                    self.index_album_and_photos(node)
 
-        print "Unindexing missing photos"
         for album in self.albums():
             for photo in self.photos(album):
                 if not os.path.exists(photo.fspath):
