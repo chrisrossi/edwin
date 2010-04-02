@@ -1,10 +1,12 @@
 import datetime
 from dateutil.parser import parse as dateparse
+from webob.exc import HTTPFound
 
 from happy.acl import effective_principals
 from happy.acl import has_permission
 from happy.acl import require_permission
 from happy.traversal import model_url
+from edwin.utils import find_trash
 from edwin.views.api import TemplateAPI
 from edwin.views.json import JSONResponse
 from edwin.views.util import format_date_range
@@ -92,6 +94,20 @@ def get_actions(request, album, photos):
                 actions.append(dict(name='publish_hidden',
                                     title='publish hidden photos'))
 
+    actions.append(dict(name='delete_all',
+                        title='delete all photos',
+                        href=model_url(request, album, 'delete_photos')))
+    if 'new' in visibilities:
+        actions.append(dict(name='delete_new',
+                            title='delete new photos',
+                            href=model_url(request, album,
+                                           'delete_photos', 'new')))
+    if 'private' in visibilities:
+        actions.append(dict(name='delete_hidden',
+                            title='delete hidden photos',
+                            href=model_url(request, album,
+                                           'delete_photos', 'private')))
+
     return actions
 
 def _set_visibility(request, album, from_, to):
@@ -102,10 +118,6 @@ def _set_visibility(request, album, from_, to):
             photos.append(photo)
 
     catalog = request.app_context.catalog
-    if from_ is not None:
-        discriminator = lambda p: p.visibility == from_
-    else:
-        discriminator = None
     catalog.index_album_and_photos(album, photos)
 
     photos = _get_photos(request, album)
@@ -198,7 +210,7 @@ setters = {
     'date_range': date_range_setter,
 }
 
-@require_permission('view')
+@require_permission('edit')
 def edit_album_view(request, album):
     updated = {}
     for name, value in request.params.items():
@@ -215,4 +227,35 @@ def edit_album_view(request, album):
     if updated:
         request.app_context.catalog.index(album)
 
+    if 'headers' in updated:
+        headers = updated.pop('headers')
+        response = JSONResponse(updated)
+        for header in headers:
+            response.headerlist.append(header)
+        return response
+
     return JSONResponse(updated)
+
+@require_permission('edit')
+def delete_photos_view(request, album):
+    if request.subpath:
+        visibility = request.subpath.pop(0)
+    else:
+        visibility = None
+
+    photos = []
+    for photo in album.photos():
+        if visibility is None or photo.visibility == visibility:
+            photos.append(photo)
+
+    assert photos, "Nothing to delete."
+
+    catalog = request.app_context.catalog
+    catalog.unindex_photos_in_album(album, photos)
+
+    trash = find_trash(album)
+    trash_id = trash.trash_photos_in_album(album, photos)
+
+    response = HTTPFound(location=model_url(request, album))
+    response.set_cookie('undo', 'trash:%s|Deleted+photos' % trash_id)
+    return response

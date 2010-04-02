@@ -174,7 +174,7 @@ def delete_photo_view(request, photo):
     trash = find_trash(photo)
     trash_id = trash.trash(photo)
     response = HTTPFound(location=model_url(request, photo.__parent__))
-    response.set_cookie('undo', 'trash:%s|Photo deleted' % trash_id)
+    response.set_cookie('undo', 'trash:%s|Photo+deleted.' % trash_id)
     return response
 
 @require_permission('view')

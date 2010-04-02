@@ -46,16 +46,19 @@ class Application(object):
         # Routes
         from edwin.views.home import homepage_view
         from edwin.views.month import month_view
+        from edwin.views.undo import undo_view
         routes = RoutesDispatcher()
         routes.register(homepage_view, 'homepage', '/')
         routes.register(month_view, 'month', '/archive/:year/:month/')
         routes.register(images, 'images', '/image/:fname/*')
+        routes.register(undo_view, 'undo', '/undo/:code')
 
         # Use traversal for albums and photos
         from edwin.models.album import Album
         from edwin.models.photo import Photo
         from edwin.views.album import album_view
         from edwin.views.album import edit_album_view
+        from edwin.views.album import delete_photos_view
         from edwin.views.photo import delete_photo_view
         from edwin.views.photo import photo_view
         from edwin.views.photo import edit_photo_view
@@ -65,6 +68,7 @@ class Application(object):
         photos = TraversalDispatcher(root_factory)
         photos.register(album_view, Album)
         photos.register(edit_album_view, Album, 'edit.json')
+        photos.register(delete_photos_view, Album, 'delete_photos')
         photos.register(photo_view, Photo)
         photos.register(edit_photo_view, Photo, 'edit.json')
         photos.register(download_photo_view, Photo, 'dl')

@@ -76,6 +76,24 @@ class Catalog(object):
             elif isinstance(obj, Album):
                 self._unindex_album(obj, c)
 
+    def unindex_photos_in_album(self, album, photos=None):
+        if photos is None:
+            photos = album.photos()
+
+        with self._cursor() as c:
+            for photo in photos:
+                c.execute("delete from photos where id=?", (photo.id,))
+
+            c.execute(
+                "select count(*) from photos where album_path=?",
+                (self._relpath(album.fspath),)
+            )
+            count = c.fetchone()[0]
+            if not count:
+                self._unindex_album(album, c)
+            else:
+                self._index_album(album, c)
+
     def scan(self, album=None):
         if album is None:
             album = Album(self.root_path)
@@ -251,7 +269,7 @@ class Catalog(object):
              photo.size[0], photo.size[1], photo.timestamp, photo.visibility)
         )
 
-    def _unindex_photo(self, photo, c):
+    def _unindex_photo(self, photo, c, cascade_up=True):
         c.execute("delete from photos where id=?", (photo.id,))
 
         # Any photos left in album?

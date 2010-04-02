@@ -16,6 +16,10 @@
       <div id="hd">
         <!-- header -->
         <div tal:condition="api.user" id="admin-header">
+          <tal:block condition="api.undo" omit-tag="">
+            ${api.undo['label']}
+            <a href="${api.undo['url']}">undo</a>
+          </tal:block>
           You are logged in as ${api.user}.
           <a href="${api.logout_url}">log out</a>
         </div>
