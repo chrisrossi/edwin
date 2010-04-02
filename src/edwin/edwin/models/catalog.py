@@ -20,8 +20,8 @@ import uuid
 class Catalog(object):
     SW_VERSION = 1
     ALBUM_COLUMNS = "path, title, start_date, end_date, month, new"
-    PHOTO_COLUMNS = ("id, path, modified, allowed_viewers,album_path, width,"
-                     "height, timestamp, visibility")
+    PHOTO_COLUMNS = ("id, fspath, path, modified, allowed_viewers,album_path, "
+                     "width, height, timestamp, visibility")
     _version = None
 
     def __init__(self, root_path, connection_manager):
@@ -94,18 +94,29 @@ class Catalog(object):
             else:
                 self._index_album(album, c)
 
-    def scan(self, album=None):
-        if album is None:
-            album = Album(self.root_path)
+    def scan(self):
+        with self._cursor() as c:
+            c.execute('select fspath from photos')
+            cataloged = set([row[0] for row in c])
 
-        for node in depthfirst(album):
-            if isinstance(node, Album):
-                if node.has_photos():
-                    self.index_album_and_photos(node)
+            cur_album_path = None
+            for fspath in find_photos(self.root_path):
+                if fspath not in cataloged:
+                    print "Adding", fspath
+                    self._index_photo(Photo(fspath), c)
+                    album_path = os.path.dirname(fspath)
+                    if cur_album_path is None:
+                        cur_album_path = album_path
+                    elif cur_album_path != album_path:
+                        self._index_album(Album(cur_album_path), c)
+                        cur_album_path = album_path
+            if cur_album_path is not None:
+                self._index_album(Album(cur_album_path), c)
 
         for album in self.albums():
             for photo in self.photos(album):
                 if not os.path.exists(photo.fspath):
+                    print "Removing", photo.fspath
                     with self._cursor() as c:
                         self._unindex_photo(photo, c)
 
@@ -263,10 +274,11 @@ class Catalog(object):
             principals_with_permission('view', photo)
         )
         c.execute(
-            "insert into photos (%s) values(?,?,?,?,?,?,?,?,?)" %
+            "insert into photos (%s) values(?,?,?,?,?,?,?,?,?,?)" %
             self.PHOTO_COLUMNS,
-            (photo.id, path, photo.modified, viewers, album_path,
-             photo.size[0], photo.size[1], photo.timestamp, photo.visibility)
+            (photo.id, photo.fspath, path, photo.modified, viewers,
+             album_path, photo.size[0], photo.size[1], photo.timestamp,
+             photo.visibility)
         )
 
     def _unindex_photo(self, photo, c, cascade_up=True):
@@ -329,11 +341,12 @@ class Catalog(object):
         return find_model(root, path)
 
 class PhotoBrain(object):
-    def __init__(self, catalog, id, path, allowed_viewers, modified,
+    def __init__(self, catalog, id, fspath, path, allowed_viewers, modified,
                  album_path,
                  width, height, timestamp, visibility):
         self.catalog = catalog
         self.id = id
+        self.fspath = fspath
         self.path = path
         self.fspath = os.path.join(catalog.root_path, path)
         self.modified = modified
@@ -393,13 +406,21 @@ class CursorContextFactory(object):
             cursor.close()
             self._manager.release_connection(connection)
 
-def depthfirst(start):
-    def visit(node):
-        if hasattr(node, 'values'):
-            for child in node.values():
-                for value in visit(child):
-                    yield value
-        yield node
+def find_photos(start):
+    def visit(path):
+        if os.path.isdir(path):
+            for fname in os.listdir(path):
+                if fname.startswith('.'):
+                    continue
+                next_path = os.path.join(path, fname)
+                for photo in visit(next_path):
+                    yield photo
+        else:
+            ext = os.path.splitext(path)[1].lower()
+            if ext == '.jpg' or ext == '.jpeg':
+                yield path
+
+    start = os.path.abspath(start)
     return visit(start)
 
 def _parse_date(value):
@@ -417,6 +438,7 @@ init_sql = [
 
     "create table photos ("
     "    id text unique primary key,"
+    "    fspath text,"
     "    path text,"
     "    modified real,"
     "    allowed_viewers text,"
