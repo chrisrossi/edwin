@@ -14,10 +14,13 @@ THUMBNAIL_SIZE = (100, 100)
 def album_view(request, album):
     app_context = request.app_context
     months_route = app_context.routes['month']
-    date = album.date_range[0]
-    back_link = months_route.url(
-        request, year=str(date.year), month='%02d' % date.month
-    )
+    if album.date_range is not None:
+        date = album.date_range[0]
+        back_link = months_route.url(
+            request, year=str(date.year), month='%02d' % date.month
+        )
+    else:
+        back_link = ''
     photos = _get_photos(request, album)
 
     return app_context.templates.render_to_response(
