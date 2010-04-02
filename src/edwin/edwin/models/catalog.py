@@ -58,6 +58,16 @@ class Catalog(object):
             elif isinstance(obj, Album):
                 self._index_album(obj, c)
 
+    def index_album_and_photos(self, album, photos=None):
+        if photos is None:
+            photos = album.photos()
+
+        with self._cursor() as c:
+            for photo in photos:
+                self._index_photo(photo, c)
+
+            self._index_album(album, c)
+
     def unindex(self, obj):
         with self._cursor() as c:
             if isinstance(obj, Photo):
@@ -70,14 +80,13 @@ class Catalog(object):
         if album is None:
             album = Album(self.root_path)
 
-        with self._cursor() as c:
-            for node in depthfirst(album):
-                if isinstance(node, Photo):
-                    self._index_photo(node, c)
-                elif isinstance(node, Album):
-                    if node.has_photos():
-                        self._index_album(node, c)
+        print "Indexing new photos"
+        for node in depthfirst(album):
+            if isinstance(node, Album):
+                if node.has_photos():
+                    self.index_album_and_photos(node, c)
 
+        print "Unindexing missing photos"
         for album in self.albums():
             for photo in self.photos(album):
                 if not os.path.exists(photo.fspath):

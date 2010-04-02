@@ -1,6 +1,7 @@
 from dateutil.parser import parse as dateparse
 
 from happy.acl import effective_principals
+from happy.acl import has_permission
 from happy.acl import require_permission
 from happy.traversal import model_url
 from edwin.views.api import TemplateAPI
@@ -12,25 +13,12 @@ THUMBNAIL_SIZE = (100, 100)
 @require_permission('view')
 def album_view(request, album):
     app_context = request.app_context
-    catalog = app_context.catalog
-    images = app_context.images
-    images_route = app_context.routes['images']
-    photos = []
-    for photo in catalog.photos(album, effective_principals(request)):
-        thumbnail = images.version(photo, THUMBNAIL_SIZE)
-        photos.append(dict(
-            url=photo.url(request),
-            thumb=thumbnail,
-            src=images_route.url(request, fname=thumbnail['fname']),
-            visibility=photo.visibility,
-            )
-        )
-
     months_route = app_context.routes['month']
     date = album.date_range[0]
     back_link = months_route.url(
         request, year=str(date.year), month='%02d' % date.month
     )
+    photos = _get_photos(request, album)
 
     return app_context.templates.render_to_response(
         'album.pt',
@@ -42,9 +30,112 @@ def album_view(request, album):
         date_range_edit=format_editable_date_range(album.date_range),
         photos=photos,
         back_link=back_link,
-        actions={},
+        actions=get_actions(request, album, photos),
         ajax_url=model_url(request, album, 'edit.json'),
     )
+
+def _get_photos(request, album):
+    app_context = request.app_context
+    catalog = app_context.catalog
+    images = app_context.images
+    images_route = app_context.routes['images']
+    photos = []
+    for photo in catalog.photos(album, effective_principals(request)):
+        thumbnail = images.version(photo, THUMBNAIL_SIZE)
+        photos.append(dict(
+            id=photo.id,
+            url=photo.url(request),
+            thumb=thumbnail,
+            src=images_route.url(request, fname=thumbnail['fname']),
+            visibility=photo.visibility,
+            )
+        )
+
+    return photos
+
+def get_actions(request, album, photos):
+    if not has_permission(request, 'edit', album):
+        return []
+
+    actions = []
+    visibilities = set()
+    for photo in photos:
+        visibilities.add(photo['visibility'])
+
+    if len(visibilities) == 1:
+        visibility = iter(visibilities).next()
+        if visibility != 'public':
+            actions.append(dict(name='publish_all',
+                                title='publish all photos'))
+        if visibility != 'private':
+            actions.append(dict(name='hide_all',
+                                title='hide all photos'))
+
+    else:
+        actions.append(dict(name='publish_all',
+                            title='publish all photos'))
+        actions.append(dict(name='hide_all',
+                            title='hide all photos'))
+        if 'new' in visibilities:
+            actions.append(dict(name='publish_new',
+                                title='publish new photos'))
+            actions.append(dict(name='hide_new',
+                                title='hide new photos'))
+            if 'public' in visibilities:
+                actions.append(dict(name='hide_public',
+                                    title='hide public photos'))
+            if 'private' in visibilities:
+                actions.append(dict(name='publish_hidden',
+                                    title='publish hidden photos'))
+
+    return actions
+
+def _set_visibility(request, album, from_, to):
+    photos = []
+    for photo in album.photos():
+        if from_ is None or photo.visibility == from_:
+            photo.visibility = to
+            photos.append(photo)
+
+    catalog = request.app_context.catalog
+    if from_ is not None:
+        discriminator = lambda p: p.visibility == from_
+    else:
+        discriminator = None
+    catalog.index_album_and_photos(album, photos)
+
+    photos = _get_photos(request, album)
+    return dict(
+        actions=get_actions(request, album, photos),
+        photos=photos
+    )
+
+def publish_all(request, album):
+    return _set_visibility(request, album, None, 'public')
+
+def hide_all(request, album):
+    return _set_visibility(request, album, None, 'private')
+
+def publish_new(request, album):
+    return _set_visibility(request, album, 'new', 'public')
+
+def publish_hidden(request, album):
+    return _set_visibility(request, album, 'private', 'public')
+
+def hide_new(request, album):
+    return _set_visibility(request, album, 'new', 'private')
+
+def hide_public(request, album):
+    return _set_visibility(request, album, 'public', 'private')
+
+actions = {
+    'publish_all': publish_all,
+    'hide_all': hide_all,
+    'publish_new': publish_new,
+    'publish_hidden': publish_hidden,
+    'hide_new': hide_new,
+    'hide_public': hide_public,
+}
 
 EDITABLE_DATE_FORMAT = '%Y/%m/%d'
 def format_editable_date_range(date_range):
@@ -104,9 +195,12 @@ setters = {
 def edit_album_view(request, album):
     updated = {}
     for name, value in request.params.items():
-        if name not in setters:
-            continue
-        updated[name] = setters[name](album, name, value)
+        if name == 'action':
+            action = actions.get(value, None)
+            if action is not None:
+                updated.update(action(request, album))
+        elif name in setters:
+            updated[name] = setters[name](album, name, value)
 
     if 'date_range' in updated:
         adjust_photo_dates(album)

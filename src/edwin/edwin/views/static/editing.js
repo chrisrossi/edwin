@@ -1,3 +1,10 @@
+function set_visibility(img, new_visibility) {
+    var old_visibility = img.attr('visibility');
+    img.removeClass('visibility-' + old_visibility);
+    img.attr('visibility', new_visibility);
+    img.addClass('visibility-' + new_visibility);
+}
+
 function ajax_success(data) {
     if ('image_src' in data) {
         // Reload transformed image
@@ -15,19 +22,22 @@ function ajax_success(data) {
         delete data['height'];
     }
 
-    for (name in data) {
+    for (var name in data) {
         if (name == 'actions') {
             actions = data[name];
             show_actions();
             continue;
         }
+        else if (name == 'photos') {
+            var photos = data[name];
+            for (var i in photos) {
+                var photo = photos[i];
+                var selector = 'img#' + photo.id
+                set_visibility($(selector), photo['visibility']);
+            }
+        }
         else if (name == 'visibility') {
-            var img = $('.photo img');
-            var old_visibility = img.attr('visibility');
-            var new_visibility = data[name];
-            img.removeClass('visibility-' + old_visibility);
-            img.attr('visibility', new_visibility);
-            img.addClass('visibility-' + new_visibility);
+            set_visibility($('.photo img'), data[name]);
         }
 
         var element = $('.field#' + name);
@@ -175,7 +185,7 @@ function show_actions() {
         else {
             anchor.attr('href', '#');
         }
-        anchor.appendTo(div).wrap('<nobr/>');
+        anchor.appendTo(div);
     }
 }
 

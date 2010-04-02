@@ -26,7 +26,8 @@
               <a href="${photo.url}">
                 <img src="${photo.src}" width="${photo.thumb.size[0]}"
                      height="${photo.thumb.size[1]}"
-                     visibility="${photo.visibility}"/>
+                     visibility="${photo.visibility}"
+                     id="${photo.id}"/>
               </a>
             </div>
           </td>
@@ -40,6 +41,7 @@
             <br/>
             <div class="field" id="desc"><tal:block replace="structure desc"/></div>
             <br/>
+            <div id="actions"></div>
             <a class="back_link" href="${back_link}">back</a>
           </td>
         </tr>
