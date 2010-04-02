@@ -50,7 +50,7 @@ class ThreadedConnectionManager(object):
     def get_connection(self):
         connection, depth = getattr(self._connections, 'connection', (None, 0))
         if connection is None:
-            connection = sqlite3.connect(self._db_file)
+            connection = sqlite3.connect(self._db_file, isolation_level=None)
             self._connections.connection = (connection, depth)
         else:
             self._connections.connection = (connection, depth + 1)
