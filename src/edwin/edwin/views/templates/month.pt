@@ -9,6 +9,10 @@
             <a href="${album.url}">${album.title} (${album.date_range})</a>
           </li>
         </ul>
+        <br/>
+        <p>
+          <a class="backlink" href="${api.application_url}">back to home</a>
+        </p>
     </div>
   </body>
 </html>

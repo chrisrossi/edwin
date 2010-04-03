@@ -19,6 +19,7 @@ class TemplateAPI(object):
         self.user = request.remote_user
         self.logout_url = self.application_url.rstrip('/') + '/logout'
         self.load_jquery = self.may('edit')
+        self.application_url = request.application_url
 
         import webob
         assert isinstance(request, webob.Request)
