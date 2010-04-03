@@ -7,7 +7,7 @@ from edwin.views.util import format_date_range
 def homepage_view(request):
     catalog = request.app_context.catalog
     recent_albums = []
-    for album in catalog.albums(effective_principals(request), limit=10):
+    for album in catalog.albums(effective_principals(request), limit=40):
         recent_albums.append(dict(
             title=album.title,
             url=album.url(request),

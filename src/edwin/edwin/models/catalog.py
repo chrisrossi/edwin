@@ -103,15 +103,15 @@ class Catalog(object):
             for fspath in find_photos(self.root_path):
                 if fspath not in cataloged:
                     print "Adding", fspath
-                    self._index_photo(Photo(fspath), c)
+                    self._index_photo(self._find_model(fspath, False), c)
                     album_path = os.path.dirname(fspath)
                     if cur_album_path is None:
                         cur_album_path = album_path
                     elif cur_album_path != album_path:
-                        self._index_album(Album(cur_album_path), c)
+                        self._index_album(self._find_model(cur_album_path, False), c)
                         cur_album_path = album_path
             if cur_album_path is not None:
-                self._index_album(Album(cur_album_path), c)
+                self._index_album(self._find_model(cur_album_path, False), c)
 
         for album in self.albums():
             for photo in self.photos(album):
@@ -336,14 +336,15 @@ class Catalog(object):
         assert path.startswith(self.root_path), path
         return path[len(self.root_path):].strip('/')
 
-    def _find_model(self, path):
+    def _find_model(self, path, rel=True):
         root = Album(self.root_path)
+        if not rel:
+            path = self._relpath(path)
         return find_model(root, path)
 
 class PhotoBrain(object):
-    def __init__(self, catalog, id, fspath, path, allowed_viewers, modified,
-                 album_path,
-                 width, height, timestamp, visibility):
+    def __init__(self, catalog, id, fspath, path, modified, allowed_viewers,
+                 album_path, width, height, timestamp, visibility):
         self.catalog = catalog
         self.id = id
         self.fspath = fspath
@@ -354,6 +355,7 @@ class PhotoBrain(object):
         self.size = (width, height)
         self.timestamp = timestamp
         self.visibility = visibility
+        self.allowed_viewers = allowed_viewers
 
     def get(self):
         return self.catalog._find_model(self.path)
