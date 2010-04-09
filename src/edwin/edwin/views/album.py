@@ -117,6 +117,7 @@ def _set_visibility(request, album, from_, to):
             photo.visibility = to
             photos.append(photo)
 
+    album.update_acl()
     catalog = request.app_context.catalog
     catalog.index_album_and_photos(album, photos)
 
