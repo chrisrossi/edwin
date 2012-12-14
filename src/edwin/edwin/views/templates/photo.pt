@@ -2,6 +2,7 @@
       xmlns:tal="http://xml.zope.org/namespaces/tal"
       metal:use-macro="api.base_macro">
   <head>
+    <title metal:fill-slot="head-title">${title}</title>
     <metal:slot fill-slot="page_headers" tal:omit-tag="">
       <link rel="stylesheet" href="${api.static_url}/photo.css"/>
       <script type="text/javascript" tal:condition="api.may('edit')">
